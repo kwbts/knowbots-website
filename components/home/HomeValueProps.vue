@@ -49,7 +49,7 @@
       title: 'An Extension of Your Team',
       alt: 'Astronauts climbing mountain representing our approach',
       description:
-        "You won't get lost in a corporate structure or handed off to junior staff. As a intentionally small team, we work directly with you—responsive, accountable, and invested in your success. Consider us your in-house marketing scientists, without the overhead.",
+        "You won't get lost in a corporate structure or handed off to junior staff. As an intentionally small team, we work directly with you—responsive, accountable, and invested in your success. Consider us your in-house marketing scientists, without the overhead.",
     },
     {
       image: '/images/content.png', // Replace with actual image path
