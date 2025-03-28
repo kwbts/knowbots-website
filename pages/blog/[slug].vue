@@ -2,7 +2,7 @@
 
 <script setup>
 import { parseISO, format } from 'date-fns';
-import { useRoute, useAsyncData, useNuxtApp, ref, onMounted } from '#imports';
+import { useRoute, useAsyncData, useNuxtApp, ref, onMounted, onBeforeUnmount } from '#imports';
 import { useBlogSchema } from '@/composables/useBlogSchema';
 
 // Access the provided sanityClient and urlFor
@@ -225,8 +225,8 @@ useHead({
 
 <template>
   <main class="flex-grow">
-    <!-- Manual Refresh Button (only visible during development) -->
-    <div v-if="process.dev" class="fixed top-4 right-4 z-50">
+    <!-- Manual Refresh Button (visible on all environments) -->
+    <div class="fixed top-4 right-4 z-50">
       <button @click="refreshContent" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
         Refresh Content
       </button>
