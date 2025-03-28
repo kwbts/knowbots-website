@@ -1,0 +1,4 @@
+const ContactForm_vue_vue_type_style_index_0_scoped_b7fb662e_lang = "#contact-form .thank-you-message[data-v-b7fb662e]{text-align:center}#contact-form .thank-you-message h2[data-v-b7fb662e]{font-family:Archivo,sans-serif;font-size:1.875rem;font-weight:700;line-height:2.25rem;margin-bottom:1rem;--tw-text-opacity:1;color:rgb(13 27 42/var(--tw-text-opacity,1))}#contact-form .thank-you-message p[data-v-b7fb662e]{font-family:Alegreya,serif;font-size:1.125rem;line-height:1.75rem;margin-bottom:1rem;--tw-text-opacity:1;color:rgb(58 58 58/var(--tw-text-opacity,1))}#contact-form .thank-you-message a[data-v-b7fb662e]{font-family:Alegreya,serif;--tw-text-opacity:1;color:rgb(217 119 6/var(--tw-text-opacity,1))}#contact-form .thank-you-message a[data-v-b7fb662e]:hover{--tw-text-opacity:1;color:rgb(192 93 59/var(--tw-text-opacity,1))}";
+
+export { ContactForm_vue_vue_type_style_index_0_scoped_b7fb662e_lang as C };
+//# sourceMappingURL=ContactForm-styles-1.mjs-DUzIWUAS.mjs.map

@@ -1,0 +1,6 @@
+# Blog post redirects
+/blog/chat-gpt-custom-instructions-for-marketers  /blog/chatgpt-custom-instructions-marketers/  301!
+/blog/ai-energy-consumption  /blog/how-much-does-an-ai-eat/  301!
+
+# Domain-level redirect
+https://knowbotsmarketing.com/*  https://knowbots.ca/:splat  301!

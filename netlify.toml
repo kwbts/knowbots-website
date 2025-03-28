@@ -1,0 +1,31 @@
+[build]
+  command = "npm run build"
+  publish = ".output/public"
+  functions = ".output/server"
+
+# Specific header for sitemap (static file)
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    content-type = "application/xml"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/*"
+    [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+
+# Handle dynamic blog routes
+[[redirects]]
+  from = "/blog/*"
+  to = "/.netlify/functions/server/blog/:splat"
+  status = 200
+
+# Handle other routes
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server/:splat"
+  status = 200
+  force = false
+  conditions = {Path = {match = "\\.[a-zA-Z0-9]{2,4}$", pattern = false}}
