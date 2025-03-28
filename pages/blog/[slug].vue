@@ -80,7 +80,7 @@ const {
       _id,
       title,
       slug,
-      publishedAt,
+      "publishedDate": dateTime(coalesce(publishedDate, publishedAt)),
       mainImage{
         asset->{
           _id,
@@ -313,7 +313,7 @@ useHead({
                   </h3>
                 </NuxtLink>
                 <p class="text-sm text-darkGray">
-                  {{ formatDate(post.publishedAt) }}
+                  {{ formatDate(blogPost.publishedDate) }}
                 </p>
               </div>
             </div>
