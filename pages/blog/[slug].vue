@@ -25,7 +25,7 @@ const {
     `*[_type == "post" && slug.current == $slug][0]{
       _id,
       title,
-      publishedDate,
+      "publishedDate": dateTime(coalesce(publishedDate, publishedAt)),
       lastModified,
       mainImage{
         asset->{
@@ -94,11 +94,10 @@ const {
 );
 
 // Format date with fallback
-const formatDate = (dateStr, fallbackDateStr) => {
-  const dateToFormat = dateStr || fallbackDateStr;
-  if (!dateToFormat) return 'Unknown date';
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'Unknown date';
   try {
-    const date = parseISO(dateToFormat);
+    const date = parseISO(dateStr);
     return format(date, 'MMM d, yyyy');
   } catch (error) {
     console.error('Date parsing error:', error);
@@ -146,7 +145,7 @@ useSeoMeta({
   twitterImage: () => blogPost.value?.ogImage?.asset?.url || blogPost.value?.mainImage?.asset?.url,
   
   // Article specific
-  articlePublishedTime: () => blogPost.value?.publishedAt,
+  articlePublishedTime: () => blogPost.value?.publishedDate,
   articleModifiedTime: () => blogPost.value?.lastModified,
   articleAuthor: () => blogPost.value?.author?.name,
 })
@@ -239,7 +238,7 @@ useHead({
             <div class="tight-spacing">
               <p class="text-sm text-darkGray font-body font-bold mb-1">Published on</p>
               <p class="text-sm text-darkGray font-body">
-                {{ formatDate(blogPost.publishedDate, blogPost.publishedAt) }}
+                {{ formatDate(blogPost.publishedDate) }}
               </p>
             </div>
           </div>
@@ -313,7 +312,7 @@ useHead({
                   </h3>
                 </NuxtLink>
                 <p class="text-sm text-darkGray">
-                  {{ formatDate(blogPost.publishedDate) }}
+                  {{ formatDate(post.publishedDate) }}
                 </p>
               </div>
             </div>
