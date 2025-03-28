@@ -2,7 +2,7 @@
 
 <script setup>
 import { parseISO, format } from 'date-fns';
-import { useRoute, useAsyncData, useNuxtApp, ref, onMounted, onBeforeUnmount } from '#imports';
+import { useRoute, useAsyncData, useNuxtApp } from '#imports';
 import { useBlogSchema } from '@/composables/useBlogSchema';
 
 // Access the provided sanityClient and urlFor
@@ -15,18 +15,11 @@ const slug = route.params.slug || '';
 // Log the slug for debugging
 console.log('Slug:', slug);
 
-// Refresh function to reload content
-const refreshContent = async () => {
-  await refetchBlogPost();
-  await refetchRecentPosts();
-};
-
-// Fetch blog post data using useAsyncData with refetch capability
+// Fetch blog post data using useAsyncData (no client-side refreshing)
 const {
   data: blogPost,
   pending: isLoading,
-  error,
-  refresh: refetchBlogPost
+  error
 } = await useAsyncData(`blog-post-${slug}`, () =>
   $sanityClient.fetch(
     `*[_type == "post" && slug.current == $slug][0]{
@@ -72,8 +65,7 @@ const {
   ),
   { 
     fresh: true,
-    server: true, // Initial fetch on server
-    client: true  // Allow client-side refetching
+    server: true  // Only fetch on server, no client-side refreshing
   }
 );
 
@@ -84,8 +76,7 @@ console.log('Fetched blog post:', blogPost);
 const {
   data: recentPosts,
   pending: recentPostsLoading,
-  error: recentPostsError,
-  refresh: refetchRecentPosts
+  error: recentPostsError
 } = await useAsyncData(`recent-posts-exclude-${slug}`, () =>
   $sanityClient.fetch(
     `*[_type == "post" && slug.current != $slug] | order(publishedAt desc)[0...3]{
@@ -105,20 +96,9 @@ const {
   ),
   {
     fresh: true,
-    client: true
+    server: true  // Only fetch on server
   }
 );
-
-// Set up polling for content updates (every 30 seconds)
-let refreshInterval;
-onMounted(() => {
-  refreshInterval = setInterval(refreshContent, 30000);
-  
-  // Clean up on component unmount
-  onBeforeUnmount(() => {
-    if (refreshInterval) clearInterval(refreshInterval);
-  });
-});
 
 // Format date with fallback
 const formatDate = (dateStr) => {
