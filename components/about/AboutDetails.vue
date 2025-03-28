@@ -21,12 +21,12 @@
             </div>
             <div class="md:w-2/3 p-6">
               <h2 class="text-3xl font-semibold mb-4 text-darkNavy font-heading">
-                You can't teach passion
+                Driven by Curiosity
               </h2>
               <p class="text-darkGray leading-relaxed font-body">
-                Curiousity is what drives me. Digital marketing is applied science for me. Our craft demands to be tested in the field. Wild ideas need an audience, curiousity needs to be tested (and measured).</p>
+                Digital marketing is applied science to me. I approach each challenge with equal parts analytical thinking and creative problem-solving—testing hypotheses, measuring outcomes, and refining approaches based on data.</p>
                 <p class="text-darkGray leading-relaxed font-body mt-4">
-                 I am a builder. My tools are martech and creativity. I am a storyteller with a desire to master the technical details. I built <a href="https://elisci.com/">Explain Like I'm Sci Fi</a> to test my web development, AI scripting, and SEO skills. This isn't just a businsess, it's a passion project.</p>
+                  As a builder, I combine martech expertise with a storyteller's instinct. I'm equally interested in mastering technical SEO and crafting narratives that connect. This fusion of skills is what makes Knowbots different from agencies that excel at either technical execution OR creative development, but rarely both.</p>
             </div>
           </div>
   
@@ -37,11 +37,15 @@
             </div>
             <div class="md:w-2/3 p-6">
               <h2 class="text-3xl font-semibold mb-4 text-darkNavy font-heading">
-                We are a fusion of skills
+                Strategic Observer
               </h2>
               <p class="text-darkGray leading-relaxed font-body">
-                Digital marketing. Web analytics and tag management. Technical SEO. Content marketing. Marketing operations. AI in Marketing. Web Development. Our curiousity fuels our journey. 
+                My natural tendency is to collect and synthesize information, finding patterns others miss. This makes me particularly effective at SEO research, competitive analysis, and identifying content opportunities that deliver real results. I don't chase marketing trends—I analyze what works and why.
               </p>
+              <p class="text-darkGray leading-relaxed font-body">
+                In a world of marketing generalists, I've chosen depth over breadth. Rather than offering surface-level knowledge across dozens of channels, I focus on becoming genuinely expert in the areas where I can deliver exceptional value.
+              </p>
+              
             </div>
           </div>
   
@@ -52,10 +56,13 @@
             </div>
             <div class="md:w-2/3 p-6">
               <h2 class="text-3xl font-semibold mb-4 text-darkNavy font-heading">
-                The story of Knowbots
+                Why We Remain Small
               </h2>
               <p class="text-darkGray leading-relaxed font-body">
-                 My goal is simple: I want to practice my craft at the highest level. Founding Knowbots, I made my mission to help a small number of clients with highly personalized services. I want to be a part of your team, and I want you to feel that way, too.
+                I founded Knowbots with a simple mission: practice my craft at the highest level for a small number of clients who value personalized service. By intentionally limiting our size, we ensure you work directly with expert consultants who are invested in your success.
+              </p>
+              <p class="text-darkGray leading-relaxed font-body">
+                This approach creates a different kind of agency relationship—one where we function as an extension of your team rather than an external vendor. We're genuinely invested in your outcomes because your success is our success.
               </p>
             </div>
           </div>

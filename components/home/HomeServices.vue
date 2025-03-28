@@ -3,10 +3,11 @@
       <!-- Section Heading and Intro Text -->
       <div class="max-w-screen-lg mx-auto text-center mb-12">
         <h2 class="text-4xl md:text-5xl font-bold mb-4 text-darkNavy font-heading">
-          Our Services Make A Difference
+          Services That Deliver Measurable Results
         </h2>
         <p class="text-xl leading-relaxed mb-8 text-darkGray font-body">
-          Your goals are our compass. These are the tools we use to get you there:        </p>
+          Your goals require specific tactics. Here's our toolkit:
+        </p>
       </div>
   
       <!-- Services List -->
@@ -47,25 +48,25 @@
       image: '/images/seo.png',
       title: 'Full-Stack SEO',
       description:
-        'From in-depth audits to content creation and keyword targeting, we optimize every inch of your digital presence.',
+        "Beyond generic audits, we deliver custom SEO strategies based on your unique market position, combining technical optimization with exceptional content creation. Our transparent reporting shows real progress and the human thinking behind our recommendations.",
     },
     {
       image: '/images/data-reports.png',
       title: 'Web Analytics & Reporting',
       description:
-        'Need GA4? Google Tag Manager audits? Dashboards that make your wins crystal clear? Done, done, and done.',
+        'Clear data leads to better decisions. From GA4 implementation to custom dashboards that track what matters to your business, we make analytics accessible and actionable—with human interpretation that goes beyond automated reports.',
     },
     {
       image: '/images/ai-marketing.png',
-      title: 'AI for Marketing',
+      title: 'AI-Enhanced Marketing',
       description:
-        'We’re emerging leaders in AI. Whether it’s training your team on cutting-edge tools or building an AI assistant, we’ve got you covered.',
+        "We harness AI as a tool in our arsenal, not the entire solution. We skillfully combine AI capabilities with human creativity and strategic thinking to create efficiencies where appropriate while ensuring your marketing maintains its human touch and strategic direction.",
     },
     {
       image: '/images/micro-app.png',
-      title: 'Micro Apps and Websites',
+      title: 'Exceptional Writing and Storytelling',
       description:
-        'From calculators to AI-driven tools, we build micro-apps and interactive websites that bring your coolest ideas to life.',
+        "At our core, we're writers who understand both the art and science of effective communication. From SEO-optimized articles to compelling brand narratives, our writing cuts through the noise and connects with your audience, delivering measurable results without sacrificing creative quality.",
     },
     // Add more services as needed
   ];

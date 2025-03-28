@@ -7,7 +7,7 @@
           Our Services
         </h2>
         <p class="text-xl leading-relaxed mb-8 text-darkNavy">
-          Our goal is to be your competitive advantage.
+          Tools and tactics carefully selected to drive your business forward.
         </p>
       </div>
   
@@ -55,9 +55,9 @@
       image: '/images/content-creation.png', // Replace with actual image path
       title: 'Content Creation',
       description:
-        'We are invested in your results. We have a small team because it is how we operate best. You will work directly with our principal consultants, not project managers and a rotating cast of contributors. Our proactive, embedded approach is what makes us stand out.',
+        "We are invested in your results. Our small team structure is intentional—it's how we operate best. You'll work directly with our principal consultants, not project managers or a revolving door of contributors. Our hands-on, embedded approach is what truly sets us apart.",
       offerings: [
-        'Direct collaboration with principal consultant',
+        'Direct collaboration with principal consultants',
         'Proactive and embedded approach',
         'Customized solutions tailored to your needs',
       ],
@@ -66,44 +66,44 @@
       image: '/images/full-stack-seo.png', // Replace with actual image path
       title: 'Full Stack SEO',
       description:
-        'We are writers and content creators. From writing top ranked content to founding successful podcasts, our team are veterans in the space. Check out our blog to see our content in action.',
+        "We are writers and content creators at heart. From crafting top-ranked articles to founding successful podcasts, our team brings veteran expertise to your projects. Our work balances search performance with exceptional writing quality—check out our blog to see our content in action.",
       offerings: [
-        'SEO-optimized blog posts',
-        'Programmatic SEO',
-        'Content strategy and planning',
+        'SEO-optimized blog posts that read like they were written for humans, not algorithms',
+        'Programmatic SEO that scales your content strategy',
+        'Content planning that aligns with both search trends and business goals',
       ],
     },
     {
       image: '/images/dashboards-reports.png', // Replace with actual image path
       title: 'Web Analytics & Reporting',
       description:
-        'We are innovators and tech experts. We bring years of experience as operators in martech as well as development chops. We blend the technical and creative to generate uncanny results. Our Labs is groundzero innovation at Knowbots.',
+        "We transform raw data into clear insights that drive smart decisions. Our technical expertise in implementation is matched by our ability to interpret results in ways that automated tools can't. We make complex data accessible and actionable through thoughtful analysis and clear reporting.",
       offerings: [
-        'Tag Manager set up',
-        'GA4 and web analytics configuration',
-        'Automated dashboards and reporting',
+        'Tag Manager setup and optimization',
+        'GA4 and web analytics configuration that tracks what matters',
+        'Custom dashboards that tell the story behind your data',
       ],
     },
     {
       image: '/images/ai-for-marketing.png', // Replace with actual image path
       title: 'AI for Marketing',
       description:
-        'We set a fast pace when it comes to delivering projects. Time-in-market is an advantage and we want to ensure you get the most value from our services. Not only are pacesetters; we are proactive partners always on the lookout for new ideas.',
+       "We harness AI as a tool that enhances human creativity, not replaces it. Our approach combines technical knowledge with strategic thinking to create efficiencies where appropriate while ensuring your marketing maintains its distinctive voice and direction.",
       offerings: [
-        'Cutting-edge expertise',
-        'AI assistant development and automation',
-        'Innovation-as-a-service',
+        'Cutting-edge expertise in practical AI applications',
+        'AI assistant development that supports rather than supplants your team',
+        'Innovation-as-a-service that keeps you ahead of the curve',
       ],
     },
     {
       image: '/images/micro-app-websites.png', // Replace with actual image path
       title: 'Micro Apps & Websites',
       description:
-        'Curiosity is the fuel for our fire. We maintain a Lab where we experiment with AI tools and build micro apps. Innovation is what makes us tick.',
+        'We build digital experiences that engage your audience and showcase your expertise. Our development skills and marketing knowledge come together to create tools and microsites that serve a strategic purpose—not just flashy technology for its own sake.',
       offerings: [
-        'Micro SaaS development',
-        'AI & web dev projects',
-        'Innovative projects and cutting edge tooling',
+        'Micro SaaS development that solves specific business problems',
+        'Web development projects with marketing strategy built in',
+        'Interactive tools that generate leads while providing value',
       ],
     },
   ];

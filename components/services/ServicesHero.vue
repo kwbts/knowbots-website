@@ -23,14 +23,14 @@
               <div class="hidden sm:block">
 
               <p class="text-lg sm:text-xl md:text-2xl mb-6 font-light font-body">
-                Blending Tech and Creativity for a Brighter Marketing Future.
+                Where Data-Driven Strategy Meets Creative Craftsmanship.
               </p>
               <!-- Call to Action Button -->
               <button
                 @click="scrollToContact"
                 class="bg-burntOrangeDark font-body hover:bg-jasperOrange text-white font-bold py-3 px-6 rounded-md shadow-md transition duration-200 ease-in-out"
               >
-                Tell Us How We Can Help
+                Book An Intro Call
               </button>
               </div>
             </div>

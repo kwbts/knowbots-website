@@ -18,11 +18,11 @@
             <div class="w-full md:w-2/3">
               <!-- Headline and Subtext -->
               <h1 class="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-wide mb-4 leading-tight font-heading pt-10 sm:pt-0">
-                About Our Humans
+                The Minds Behind Knowbots
               </h1>
               <div class="hidden sm:block">
               <p class="text-lg sm:text-xl md:text-2xl mb-6 font-light font-body">
-                Our Passion Is Our Greatest Strength.
+                Where Analytical Thinking Meets Creative Execution.
               </p>
               <!-- Call to Action Button -->
               <button

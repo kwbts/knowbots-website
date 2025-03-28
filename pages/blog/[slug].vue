@@ -12,9 +12,6 @@ const { $sanityClient, $urlFor } = useNuxtApp();
 const route = useRoute();
 const slug = route.params.slug || '';
 
-// Log the slug for debugging
-console.log('Slug:', slug);
-
 // Fetch blog post data using useAsyncData (no client-side refreshing)
 const {
   data: blogPost,
@@ -30,9 +27,13 @@ const {
       mainImage{
         asset->{
           _id,
-          url
+          url,
+          metadata {
+            dimensions
+          }
         },
-        alt
+        alt,
+        imageType
       },
       "author": author->{
         name,
@@ -55,7 +56,21 @@ const {
       },
       content[] {
         ...,
-        // Include any necessary references or nested objects
+        // For images in content blocks, fetch dimensions
+        _type == "media" => {
+          ...,
+          image {
+            asset->{
+              _id,
+              url,
+              metadata {
+                dimensions
+              }
+            },
+            alt,
+            imageType
+          }
+        }
       },
       seoTitle,
       seoDescription,
@@ -68,9 +83,6 @@ const {
     server: true  // Only fetch on server, no client-side refreshing
   }
 );
-
-// Log the fetched data for debugging
-console.log('Fetched blog post:', blogPost);
 
 // Fetch recent posts excluding the current one
 const {
@@ -89,7 +101,8 @@ const {
           _id,
           url
         },
-        alt
+        alt,
+        imageType
       }
     }`,
     { slug }
@@ -110,6 +123,84 @@ const formatDate = (dateStr) => {
     console.error('Date parsing error:', error);
     return 'Invalid date';
   }
+};
+
+// Helper function to determine image display class based on image type or dimensions
+const getImageDisplayClass = (image) => {
+  if (!image) return 'image-full-width';
+  
+  // If imageType is explicitly set, use that
+  if (image.imageType) {
+    switch (image.imageType) {
+      case 'hero': return 'image-hero';
+      case 'banner': return 'image-banner';
+      case 'screenshot': return 'image-screenshot';
+      case 'midjourney': return 'image-midjourney';
+      case 'inline': return 'image-inline';
+      default: return 'image-default';
+    }
+  }
+  
+  // Otherwise try to determine based on dimensions
+  const dimensions = image.asset?.metadata?.dimensions;
+  if (dimensions) {
+    const aspectRatio = dimensions.width / dimensions.height;
+    
+    // Identify common aspect ratios
+    if (aspectRatio >= 1.7 && aspectRatio <= 1.8) {
+      return 'image-hero'; // 16:9 ratio
+    } else if (aspectRatio >= 2.2 && aspectRatio <= 2.3) {
+      return 'image-midjourney'; // 9:4 ratio
+    } else if (aspectRatio < 1.5 && dimensions.width < 800) {
+      return 'image-screenshot'; // Narrower, smaller images
+    }
+  }
+  
+  // Default behavior
+  return 'image-default';
+};
+
+// Helper to get correct image size parameters based on image type
+const getImageParameters = (image, isMainImage = false) => {
+  const imageClass = getImageDisplayClass(image);
+  let width, height, fit;
+  
+  switch (imageClass) {
+    case 'image-hero':
+      width = 1200;
+      height = 675; // 16:9 ratio
+      fit = 'max';
+      break;
+    case 'image-midjourney':
+      width = 1200;
+      height = 540; // 9:4 ratio
+      fit = 'max';
+      break;
+    case 'image-screenshot':
+      width = 800;
+      height = undefined;
+      fit = 'max';
+      break;
+    case 'image-inline':
+      width = 600;
+      height = undefined;
+      fit = 'max';
+      break;
+    default:
+      width = isMainImage ? 1200 : 800;
+      height = undefined;
+      fit = 'max';
+  }
+  
+  const urlForBuilder = $urlFor(image.asset);
+  if (width) urlForBuilder.width(width);
+  if (height) urlForBuilder.height(height);
+  if (fit) urlForBuilder.fit(fit);
+  
+  return {
+    url: urlForBuilder.url(),
+    class: imageClass
+  };
 };
 
 // Map block types to components
@@ -224,11 +315,13 @@ useHead({
         <div v-else-if="blogPost">
           <!-- Blog Image -->
           <div v-if="blogPost.mainImage" class="mb-4">
-            <img
-              :src="$urlFor(blogPost.mainImage.asset).width(800).url()"
-              :alt="blogPost.mainImage.alt || 'Blog Image'"
-              class="w-full h-auto object-cover rounded-lg"
-            />
+            <div :class="getImageDisplayClass(blogPost.mainImage)">
+              <img
+                :src="getImageParameters(blogPost.mainImage, true).url"
+                :alt="blogPost.mainImage.alt || 'Blog Image'"
+                class="image-responsive"
+              />
+            </div>
           </div>
 
           <!-- Author and Published Date -->
@@ -263,6 +356,8 @@ useHead({
               :is="getBlockComponent(block._type) || 'div'"
               :key="block._key || index"
               :value="block"
+              :getImageDisplayClass="getImageDisplayClass"
+              :getImageParameters="getImageParameters"
             >
               <!-- Fallback for unsupported block types -->
               <template v-if="!getBlockComponent(block._type)">
@@ -363,17 +458,17 @@ useHead({
 
 /* Paragraph Styles within blog-content */
 .blog-content :deep(p) {
-  @apply text-xl text-darkGray font-bodyAlt mb-4 leading-9; /* Updated to text-lg and font-bodyAlt */
+  @apply text-xl text-darkGray font-bodyAlt mb-4 leading-9;
 }
 
 /* Unordered List Styles within blog-content */
 .blog-content :deep(ul) {
-  @apply list-disc pl-5 text-lg text-darkGray font-body mb-4; /* Updated to text-lg and font-bodyAlt */
+  @apply list-disc pl-5 text-lg text-darkGray font-body mb-4;
 }
 
 /* Ordered List Styles within blog-content */
 .blog-content :deep(ol) {
-  @apply list-decimal pl-5 text-lg text-darkGray font-body mb-4; /* Updated to text-lg and font-bodyAlt */
+  @apply list-decimal pl-5 text-lg text-darkGray font-body mb-4;
 }
 
 /* List Item Styles within blog-content */
@@ -386,7 +481,7 @@ useHead({
 .blog-content :deep(ol ol),
 .blog-content :deep(ul ol),
 .blog-content :deep(ol ul) {
-  @apply pl-4; /* Adjust padding as needed */
+  @apply pl-4;
 }
 
 /* Table Styles within blog-content */
@@ -425,11 +520,47 @@ useHead({
   margin: 1.5rem 0 2rem 0; /* Add vertical spacing */
 }
 
-.blog-content :deep(img) {
+/* Base responsive image styles */
+.image-responsive {
   border-radius: 0.5rem;
-  object-fit: cover;
-  max-width: 100%;
+  width: 100%;
   height: auto;
+}
+
+/* Different image container types */
+.image-hero {
+  width: 100%;
+  margin: 0 auto 2rem;
+}
+
+.image-banner, .image-midjourney {
+  width: 100%;
+  margin: 1.5rem auto;
+}
+
+.image-screenshot {
+  max-width: 800px;
+  margin: 1.5rem auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.image-inline {
+  max-width: 600px;
+  margin: 1rem auto;
+  display: block;
+}
+
+.image-default {
+  width: 100%;
+  margin: 1.5rem auto;
+}
+
+/* Center smaller images */
+.image-screenshot, .image-inline {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .read-more-section h2 {
@@ -463,5 +594,57 @@ useHead({
 .blog-content :deep(a:focus) {
   color: #c61a09; /* Red shade for hover or focus state */
   text-decoration: underline;
+}
+
+/* Media queries for responsive display */
+@media (max-width: 768px) {
+  .image-screenshot, .image-inline {
+    max-width: 100%;
+  }
+}
+.blog-content :deep(img) {
+  border-radius: 0.5rem;
+  object-fit: cover;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Center all captions */
+.blog-content :deep(p:has(+ img)),
+.blog-content :deep(p:has(img ~ *)),
+.blog-content :deep(figcaption),
+.blog-content :deep(.caption-text),
+.blog-content :deep(.image-caption) {
+  text-align: center;
+  width: 100%;
+  font-style: italic;
+  color: #4A4A4A;
+  font-size: 0.875rem;
+}
+
+/* Different image container types */
+.image-hero,
+.image-banner,
+.image-midjourney,
+.image-screenshot,
+.image-inline,
+.image-default {
+  width: 100%;
+  text-align: center;
+  margin: 1.5rem auto;
+}
+
+/* More specific container styles */
+.image-screenshot {
+  max-width: 800px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.image-inline {
+  max-width: 600px;
 }
 </style>

@@ -4,10 +4,10 @@
       <!-- Section Heading and Intro Text -->
       <div class="max-w-screen-lg mx-auto text-center mb-12">
         <h2 class="font-heading text-4xl md:text-5xl font-bold mb-4 text-darkNavy">
-          Field Tested Digital Marketing
+          Digital Marketing for the Imaginative Mind
         </h2>
         <p class="text-xl leading-relaxed mb-8 text-darkNavy">
-          We’re not here to keep pace—we’re here to set it.        </p>
+          We don't just analyze data—we transform it into creative solutions that captivate audiences and drive results.        </p>
       </div>
   
       <!-- Value Propositions List -->
@@ -49,35 +49,35 @@
       title: 'An Extension of Your Team',
       alt: 'Astronauts climbing mountain representing our approach',
       description:
-        'We don’t do bureaucracy. You won’t get passed off to project managers or lost in a rotating roster. You’ll work directly with our principal consultants—proactive, invested, and relentless. We’re your competitive advantage, embedded where it matters most.',
+        "You won't get lost in a corporate structure or handed off to junior staff. As a intentionally small team, we work directly with you—responsive, accountable, and invested in your success. Consider us your in-house marketing scientists, without the overhead.",
     },
     {
       image: '/images/content.png', // Replace with actual image path
       title: 'World-Class Content',
       alt: 'Books and notepads representing content marketing',
       description:
-        'We’re not just content creators; we’re storytellers, strategists, and SEO veterans. From top-ranked articles to successful podcasts, our team crafts content that drives traffic and tells your story.' ,
+        "Content isn't just words on a page; it's a strategic asset that should deliver results. Our approach combines storytelling with data analysis to create content that ranks, converts, and builds authority in your space." ,
     },
     {
       image: '/images/experts.png', // Replace with actual image path
       title: 'Tech Experts',
-      alt: 'Futuristic computer',
+      alt: 'Human Expertise, Enhanced by Technology',
       description:
-        'Marketing moves fast, and we move faster. With martech expertise, development skills, and a curiosity that never quits, we combine technical precision with creative firepower. Our Labs is where cutting-edge ideas come to life.',
+        "We build tools that amplify our capabilities, not replace our judgment. With both development skills and marketing expertise, we create custom solutions that combine technical know-how with hands-on craftsmanship—solving problems most agencies don't even recognize.",
     },
     {
       image: '/images/delivery.png', // Replace with actual image path
       title: 'Unmatched Rate of Delivery',
       alt: 'Flowers growing out of pots',
       description:
-        'We set a fast pace when it comes to delivering projects. Time-in-market is an advantage and we want to ensure you get the most value from our services. Not only are pacesetters; we are proactive partners always on the lookout for new ideas.',
+        "Without layers of approval and bureaucracy, we move fast. Your projects don't sit in queue for weeks—we set a fast pace to get your initiatives to market quickly, giving you a competitive edge and more time to see results.",
     },
     {
       image: '/images/innovating.png', // Replace with actual image path
-      title: 'Innovation at the Cutting Edge',
+      title: 'Innovation Workshop',
       alt: 'An innovation lab with scientific equipment',
       description:
-        'Curiosity drives us. Our Lab experiments with AI tools and builds micro-apps to stay one step ahead of the curve. When you partner with us, you get the benefit of that momentum.',
+        "Our Lab is where we explore the intersection of creativity and technology. We test new approaches, build useful tools, and develop techniques that enhance our work—not replace it. When you work with us, you get the perfect balance of proven methods and forward-thinking approaches.",
     },
   ];
   </script>

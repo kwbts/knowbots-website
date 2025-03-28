@@ -6,10 +6,10 @@
       <!-- Left Column: Text Content -->
       <div class="md:w-1/2">
         <h2 class="text-4xl font-bold mb-4 text-darkTeal font-heading">
-          Let's talk digital marketing
+          Let's create marketing that stands out and delivers
         </h2>
         <h3 class="text-2xl mb-6 text-darkGray font-body">
-          Imagine what we could do together
+          Imagine what we can build together
         </h3>
         <!-- Testimonial Section -->
         <div class="flex items-start space-x-4">
