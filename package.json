@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/generate-sitemap.js && netlify build --clear-cache && nuxt build",
+    "build": "node scripts/generate-sitemap.js && nuxt build",
     "dev": "nuxt dev",
     "generate": "node scripts/generate-sitemap.js && nuxt generate",
     "preview": "nuxt preview",
