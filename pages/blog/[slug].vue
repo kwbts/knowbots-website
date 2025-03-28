@@ -12,12 +12,11 @@ const { $sanityClient, $urlFor } = useNuxtApp();
 const route = useRoute();
 const slug = route.params.slug || '';
 
-// Create a ref for timestamp to force image refresh
-const imageTimestamp = ref(Date.now());
+// Log the slug for debugging
+console.log('Slug:', slug);
 
 // Refresh function to reload content
 const refreshContent = async () => {
-  imageTimestamp.value = Date.now();
   await refetchBlogPost();
   await refetchRecentPosts();
 };
@@ -77,6 +76,9 @@ const {
     client: true  // Allow client-side refetching
   }
 );
+
+// Log the fetched data for debugging
+console.log('Fetched blog post:', blogPost);
 
 // Fetch recent posts excluding the current one
 const {
@@ -225,13 +227,6 @@ useHead({
 
 <template>
   <main class="flex-grow">
-    <!-- Manual Refresh Button (visible on all environments) -->
-    <div class="fixed top-4 right-4 z-50">
-      <button @click="refreshContent" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Refresh Content
-      </button>
-    </div>
-    
     <!-- Existing Blog Content -->
     <section class="bg-offWhiteBackground py-16 px-8 pt-24">
       <div class="max-w-screen-lg mx-auto px-20 blog-content">
@@ -247,10 +242,10 @@ useHead({
 
         <!-- Content -->
         <div v-else-if="blogPost">
-          <!-- Blog Image with cache busting -->
+          <!-- Blog Image -->
           <div v-if="blogPost.mainImage" class="mb-4">
             <img
-              :src="`${$urlFor(blogPost.mainImage.asset).width(800).url()}?t=${imageTimestamp}`"
+              :src="$urlFor(blogPost.mainImage.asset).width(800).url()"
               :alt="blogPost.mainImage.alt || 'Blog Image'"
               class="w-full h-auto object-cover rounded-lg"
             />
@@ -327,10 +322,10 @@ useHead({
               :key="post._id"
               class="post-card hover:shadow-2xl hover:shadow-black border-solid border border-gray-300 transition duration-200 ease-in-out"
             >
-              <!-- Post Image with cache busting -->
+              <!-- Post Image -->
               <NuxtLink :to="`/blog/${post.slug.current}/`">
                 <img
-                  :src="`${$urlFor(post.mainImage.asset).width(600).height(400).fit('crop').url()}?t=${imageTimestamp}`"
+                  :src="$urlFor(post.mainImage.asset).width(600).height(400).fit('crop').url()"
                   :alt="post.mainImage.alt || post.title"
                   class="w-full h-48 object-cover rounded-t-lg"
                 />
