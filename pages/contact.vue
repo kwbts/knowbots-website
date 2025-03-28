@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import ContactHero from '~/components/contact/ContactHero.vue';
-import ContactForm from '~/components/global/ContactForm.vue';
 definePageMeta({
   isHeroSection: true,
 });
@@ -39,6 +38,5 @@ useSeoMeta({
 <!-- services.vue -->
   <template>
     <ContactHero />
-    <ContactForm />
 
   </template>

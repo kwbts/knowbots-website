@@ -42,7 +42,7 @@
               <p class="text-darkGray leading-relaxed font-body">
                 My natural tendency is to collect and synthesize information, finding patterns others miss. This makes me particularly effective at SEO research, competitive analysis, and identifying content opportunities that deliver real results. I don't chase marketing trends—I analyze what works and why.
               </p>
-              <p class="text-darkGray leading-relaxed font-body">
+              <p class="text-darkGray leading-relaxed font-body mt-4">
                 In a world of marketing generalists, I've chosen depth over breadth. Rather than offering surface-level knowledge across dozens of channels, I focus on becoming genuinely expert in the areas where I can deliver exceptional value.
               </p>
               
@@ -61,7 +61,7 @@
               <p class="text-darkGray leading-relaxed font-body">
                 I founded Knowbots with a simple mission: practice my craft at the highest level for a small number of clients who value personalized service. By intentionally limiting our size, we ensure you work directly with expert consultants who are invested in your success.
               </p>
-              <p class="text-darkGray leading-relaxed font-body">
+              <p class="text-darkGray leading-relaxed font-body mt-4">
                 This approach creates a different kind of agency relationship—one where we function as an extension of your team rather than an external vendor. We're genuinely invested in your outcomes because your success is our success.
               </p>
             </div>
