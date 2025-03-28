@@ -2,7 +2,7 @@
 
 <script setup>
 import { parseISO, format } from 'date-fns';
-import { useRoute, useAsyncData, useNuxtApp } from '#imports';
+import { useRoute, useAsyncData, useNuxtApp, ref, onMounted } from '#imports';
 import { useBlogSchema } from '@/composables/useBlogSchema';
 
 // Access the provided sanityClient and urlFor
@@ -12,14 +12,22 @@ const { $sanityClient, $urlFor } = useNuxtApp();
 const route = useRoute();
 const slug = route.params.slug || '';
 
-// Log the slug for debugging
-console.log('Slug:', slug);
+// Create a ref for timestamp to force image refresh
+const imageTimestamp = ref(Date.now());
 
-// Fetch blog post data using useAsyncData
+// Refresh function to reload content
+const refreshContent = async () => {
+  imageTimestamp.value = Date.now();
+  await refetchBlogPost();
+  await refetchRecentPosts();
+};
+
+// Fetch blog post data using useAsyncData with refetch capability
 const {
   data: blogPost,
   pending: isLoading,
   error,
+  refresh: refetchBlogPost
 } = await useAsyncData(`blog-post-${slug}`, () =>
   $sanityClient.fetch(
     `*[_type == "post" && slug.current == $slug][0]{
@@ -63,17 +71,19 @@ const {
     }`,
     { slug }
   ),
-  { fresh: true }
+  { 
+    fresh: true,
+    server: true, // Initial fetch on server
+    client: true  // Allow client-side refetching
+  }
 );
-
-// Log the fetched data for debugging
-console.log('Fetched blog post:', blogPost);
 
 // Fetch recent posts excluding the current one
 const {
   data: recentPosts,
   pending: recentPostsLoading,
   error: recentPostsError,
+  refresh: refetchRecentPosts
 } = await useAsyncData(`recent-posts-exclude-${slug}`, () =>
   $sanityClient.fetch(
     `*[_type == "post" && slug.current != $slug] | order(publishedAt desc)[0...3]{
@@ -90,8 +100,23 @@ const {
       }
     }`,
     { slug }
-  )
+  ),
+  {
+    fresh: true,
+    client: true
+  }
 );
+
+// Set up polling for content updates (every 30 seconds)
+let refreshInterval;
+onMounted(() => {
+  refreshInterval = setInterval(refreshContent, 30000);
+  
+  // Clean up on component unmount
+  onBeforeUnmount(() => {
+    if (refreshInterval) clearInterval(refreshInterval);
+  });
+});
 
 // Format date with fallback
 const formatDate = (dateStr) => {
@@ -200,6 +225,13 @@ useHead({
 
 <template>
   <main class="flex-grow">
+    <!-- Manual Refresh Button (only visible during development) -->
+    <div v-if="process.dev" class="fixed top-4 right-4 z-50">
+      <button @click="refreshContent" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Refresh Content
+      </button>
+    </div>
+    
     <!-- Existing Blog Content -->
     <section class="bg-offWhiteBackground py-16 px-8 pt-24">
       <div class="max-w-screen-lg mx-auto px-20 blog-content">
@@ -215,10 +247,10 @@ useHead({
 
         <!-- Content -->
         <div v-else-if="blogPost">
-          <!-- Blog Image -->
+          <!-- Blog Image with cache busting -->
           <div v-if="blogPost.mainImage" class="mb-4">
             <img
-              :src="$urlFor(blogPost.mainImage.asset).width(800).url()"
+              :src="`${$urlFor(blogPost.mainImage.asset).width(800).url()}?t=${imageTimestamp}`"
               :alt="blogPost.mainImage.alt || 'Blog Image'"
               class="w-full h-auto object-cover rounded-lg"
             />
@@ -295,10 +327,10 @@ useHead({
               :key="post._id"
               class="post-card hover:shadow-2xl hover:shadow-black border-solid border border-gray-300 transition duration-200 ease-in-out"
             >
-              <!-- Post Image -->
+              <!-- Post Image with cache busting -->
               <NuxtLink :to="`/blog/${post.slug.current}/`">
                 <img
-                  :src="$urlFor(post.mainImage.asset).width(600).height(400).fit('crop').url()"
+                  :src="`${$urlFor(post.mainImage.asset).width(600).height(400).fit('crop').url()}?t=${imageTimestamp}`"
                   :alt="post.mainImage.alt || post.title"
                   class="w-full h-48 object-cover rounded-t-lg"
                 />
