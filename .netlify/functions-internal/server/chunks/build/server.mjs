@@ -648,12 +648,12 @@ const _routes = [
     name: "about",
     path: "/about",
     meta: __nuxt_page_meta$4 || {},
-    component: () => import('./about-CA889y7d.mjs')
+    component: () => import('./about-BgYH-sQn.mjs')
   },
   {
     name: "blog-slug",
     path: "/blog/:slug()",
-    component: () => import('./_slug_-CuNImRR-.mjs')
+    component: () => import('./_slug_-DVgTekNq.mjs')
   },
   {
     name: "blog",
@@ -664,25 +664,25 @@ const _routes = [
     name: "contact",
     path: "/contact",
     meta: __nuxt_page_meta$3 || {},
-    component: () => import('./contact-DxsH8bGf.mjs')
+    component: () => import('./contact-CGWeuEdZ.mjs')
   },
   {
     name: "index",
     path: "/",
     meta: __nuxt_page_meta$2 || {},
-    component: () => import('./index-CkLrK7DG.mjs')
+    component: () => import('./index-Dba2ra7_.mjs')
   },
   {
     name: "labs",
     path: "/labs",
     meta: __nuxt_page_meta$1 || {},
-    component: () => import('./labs-Bep1kYX2.mjs')
+    component: () => import('./labs-Cc--NEp7.mjs')
   },
   {
     name: "services",
     path: "/services",
     meta: __nuxt_page_meta || {},
-    component: () => import('./services-qbCLyyOe.mjs')
+    component: () => import('./services-CFR8K4Xt.mjs')
   }
 ];
 const _wrapIf = (component, props, slots) => {
@@ -1021,7 +1021,7 @@ const revive_payload_server_eJ33V7gbc6 = /* @__PURE__ */ defineNuxtPlugin({
     }
   }
 });
-const LazyContactForm = defineAsyncComponent(() => import('./ContactForm-BB15n9US.mjs').then((r) => r["default"] || r.default || r));
+const LazyContactForm = defineAsyncComponent(() => import('./ContactForm-CDW_aj0U.mjs').then((r) => r["default"] || r.default || r));
 const LazyCustomers = defineAsyncComponent(() => import('./Customers-BnCU43c4.mjs').then((r) => r["default"] || r.default || r));
 const LazyFooter = defineAsyncComponent(() => Promise.resolve().then(function() {
   return Footer;
