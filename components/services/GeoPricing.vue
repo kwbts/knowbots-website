@@ -18,7 +18,7 @@
           <!-- Card Header -->
           <div class="bg-burntOrangeDark text-white p-6 text-center">
             <h3 class="text-2xl font-bold font-heading mb-3">Starter Package</h3>
-            <div class="text-3xl font-body font-bold">One Time Fee</div>
+            <div class="text-1xl font-body font-bold">One Time Fee</div>
           </div>
           <!-- Card Body -->
           <div class="p-6">
@@ -68,7 +68,7 @@
           <!-- Card Header -->
           <div class="bg-burntOrangeDark text-white p-6 text-center">
             <h3 class="text-2xl font-bold font-heading mb-3">Growth Package</h3>
-            <div class="text-3xl font-body font-bold">One Time Fee</div>
+            <div class="text-1xl font-body font-bold">One Time Fee</div>
           </div>
           <!-- Card Body -->
           <div class="p-6">
@@ -120,7 +120,7 @@
           <!-- Card Header -->
           <div class="bg-burntOrangeDark text-white p-6 text-center">
             <h3 class="text-2xl font-bold font-heading mb-3">Monthly</h3>
-            <div class="text-3xl font-body font-bold">Ongoing Support</div>
+            <div class="text-1xl font-body font-bold">Ongoing Support</div>
           </div>
           <!-- Card Body -->
           <div class="p-6">
