@@ -36,6 +36,25 @@ useSeoMeta({
   viewport: 'width=device-width, initial-scale=1',
   charset: 'utf-8',
 });
+
+// Add Google Tag Manager scripts
+useHead({
+  script: [
+    {
+      src: 'https://www.googletagmanager.com/gtag/js?id=AW-17023033329',
+      async: true
+    },
+    {
+      children: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'AW-17023033329');
+      `,
+      type: 'text/javascript'
+    }
+  ]
+});
 </script>
 
 <template>
