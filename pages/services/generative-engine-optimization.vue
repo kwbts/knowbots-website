@@ -14,7 +14,7 @@ const siteUrl = computed(() => config.public.siteUrl)
 
 useSeoMeta({
   // Essential tags
-  title: 'Generative Engine Optimization - Knowbots Marketing',
+  title: 'Generative Engine Optimization Services - Knowbots Marketing',
   description: 'Enhance your AI-driven content strategy with our Generative Engine Optimization (GEO) services. Optimize your content for both search engines and AI systems.',
 
   // Open Graph

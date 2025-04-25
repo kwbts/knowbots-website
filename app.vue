@@ -1,8 +1,8 @@
 <template>
   <div>
-    <TopNavigation :isHeroSection="isHeroSection" />
+    <TopNavigation v-if="!isCustomLayoutPage"/>
     <NuxtPage />
-    <Footer />
+    <Footer v-if="!isCustomLayoutPage" />
   </div>
 </template>
 
@@ -13,6 +13,19 @@ import { useOrganizationSchema } from '@/composables/useOrganizationSchema';
 
 const route = useRoute();
 const isHeroSection = computed(() => route.meta.isHeroSection ?? false);
+
+// Check if current page should use a custom layout (without global navigation)
+const isCustomLayoutPage = computed(() => {
+  // Check if the route path starts with any of these prefixes
+  const customLayoutPaths = [
+    '/citebots',      // All CiteBots pages
+    '/dashboard',     // Dashboard pages
+    '/core-sample',   // Core sample report pages
+    '/report'         // Other report pages
+  ];
+  
+  return customLayoutPaths.some(path => route.path.startsWith(path));
+});
 
 // Get the organization schema generator
 const { createOrganizationSchema } = useOrganizationSchema();
