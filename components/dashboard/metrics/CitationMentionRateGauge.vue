@@ -196,281 +196,164 @@ const brandName = computed(() => {
   return 'Your Brand';
 });
 
-// Helper function to normalize strings for comparison
-const normalizeString = (str) => {
-  if (!str) return '';
-  return str.toString().toLowerCase().trim();
-};
-
-// Check if string A contains string B (case-insensitive and space-tolerant)
-const containsIgnoreCase = (stringA, stringB) => {
-  if (!stringA || !stringB) return false;
-  return normalizeString(stringA).includes(normalizeString(stringB));
-};
-
-// Check if two strings match (case-insensitive and space-tolerant)
-const matchesIgnoreCase = (stringA, stringB) => {
-  if (!stringA || !stringB) return false;
-  return normalizeString(stringA) === normalizeString(stringB);
-};
-
-// Helper function to calculate the citation rate for any entity
-const calculateCitationRate = (entityName, isClient = false) => {
-  if (!props.clientData || !props.clientData.query_data) {
-    return 0;
-  }
+// Count all citations (total pages)
+const countTotalCitations = () => {
+  if (!props.clientData?.query_data) return 0;
   
-  // Get all associated pages from all queries
-  const allPages = [];
+  let count = 0;
+  props.clientData.query_data.forEach(query => {
+    if (query.associated_pages && Array.isArray(query.associated_pages)) {
+      count += query.associated_pages.length;
+    }
+  });
+  return count;
+};
+
+// Count brand mentions
+const countBrandMentions = () => {
+  if (!props.clientData?.query_data) return 0;
+  
+  let count = 0;
   props.clientData.query_data.forEach(query => {
     if (query.associated_pages && Array.isArray(query.associated_pages)) {
       query.associated_pages.forEach(page => {
-        // Add platform info to page object for filtering
-        let platform = '';
-        if (page.data_source) {
-          platform = page.data_source;
-        } else if (query.query_id && query.query_id.toLowerCase().includes('perplexity')) {
-          platform = 'perplexity';
-        } else if (query.query_id && query.query_id.toLowerCase().includes('chatgpt')) {
-          platform = 'chatgpt';
-        } else if (query.data_source) {
-          platform = query.data_source;
-        } else if (query.query_metrics && query.query_metrics.data_source) {
-          platform = query.query_metrics.data_source;
+        if (page.brand_mentioned === true || 
+            page.brand_mentioned === "checked" ||
+            page.is_client_domain === true || 
+            page.is_client_domain === "checked") {
+          count++;
         }
-
-        allPages.push({
-          ...page,
-          platform,
-          query_id: query.query_id
-        });
       });
     }
   });
-  
-  // Total number of citations (pages)
-  const totalCitations = allPages.length;
-  if (totalCitations === 0) return 0;
-  
-  // Count citations for the entity
-  let entityCitations = 0;
-  
-  if (isClient) {
-    // For client (brand), check is_client_domain or domain name contains client name
-    const clientNameLower = normalizeString(props.clientData.client_name);
-    
-    entityCitations = allPages.filter(page => {
-      // 1. Check is_client_domain flag
-      if (page.is_client_domain === true || page.is_client_domain === "checked") {
-        return true;
-      }
-      // 2. Check brand_mentioned flag
-      else if (page.brand_mentioned === true || page.brand_mentioned === "checked") {
-        return true;
-      }
-      // 3. Check if citation_url contains client name
-      else if (page.citation_url && containsIgnoreCase(page.citation_url, clientNameLower)) {
-        return true;
-      }
-      // 4. Check if domain_name contains client name
-      else if (page.domain_name && containsIgnoreCase(page.domain_name, clientNameLower)) {
-        return true;
-      }
-      
-      return false;
-    }).length;
-  } else {
-    // For competitors, check competitor_mentioned_name or domain name
-    const normalizedEntityName = normalizeString(entityName);
-    
-    entityCitations = allPages.filter(page => {
-      // Check competitor_mentioned_name (normalized for comparison)
-      if (page.competitor_mentioned_name) {
-        // Handle as array or string
-        if (Array.isArray(page.competitor_mentioned_name)) {
-          // Check if any name in the array matches our search name
-          return page.competitor_mentioned_name.some(name => 
-            matchesIgnoreCase(name, normalizedEntityName)
-          );
-        } else {
-          // Direct comparison of single name
-          return matchesIgnoreCase(page.competitor_mentioned_name, normalizedEntityName);
-        }
-      }
-      
-      // Check if citation_url contains competitor name
-      if (page.citation_url && containsIgnoreCase(page.citation_url, normalizedEntityName)) {
-        return true;
-      }
-      
-      // Check if domain_name contains competitor name
-      if (page.domain_name && containsIgnoreCase(page.domain_name, normalizedEntityName)) {
-        return true;
-      }
-      
-      return false;
-    }).length;
-  }
-  
-  // Calculate citation rate percentage
-  return (entityCitations / totalCitations) * 100;
+  return count;
 };
 
-// Analyze competitors and their citation rates
-const analyzeCompetitors = () => {
-  if (!props.clientData || !props.clientData.query_data) {
-    return;
-  }
-
-  // Map to track normalized competitor names to original names
-  // This helps handle variations in casing and spacing
-  const competitorMap = new Map();
+// Count competitor mentions
+const countCompetitorMentions = (competitorName) => {
+  if (!props.clientData?.query_data || !competitorName) return 0;
   
-  // First pass: collect all unique competitor names with proper casing
+  let count = 0;
   props.clientData.query_data.forEach(query => {
-    // Check query level
+    if (query.associated_pages && Array.isArray(query.associated_pages)) {
+      query.associated_pages.forEach(page => {
+        // Check competitor_mentioned_name field
+        if (page.competitor_mentioned_name) {
+          if (Array.isArray(page.competitor_mentioned_name)) {
+            // If it's an array, check if any name matches
+            if (page.competitor_mentioned_name.some(name => 
+              name && name.toLowerCase() === competitorName.toLowerCase())) {
+              count++;
+            }
+          } else {
+            // If it's a string, do direct comparison
+            if (page.competitor_mentioned_name.toLowerCase() === competitorName.toLowerCase()) {
+              count++;
+            }
+          }
+        }
+      });
+    }
+  });
+  return count;
+};
+
+// Extract all unique competitor names from all available sources
+const extractAllCompetitors = () => {
+  if (!props.clientData?.query_data) return [];
+  
+  // Set to track unique competitor names
+  const competitorSet = new Set();
+  
+  // Scan all query data for competitor mentions
+  props.clientData.query_data.forEach(query => {
+    // Check query-level competitor mention
     if (query.competitor_mentioned_name) {
-      extractCompetitorNames(query.competitor_mentioned_name, competitorMap);
+      addCompetitorNames(query.competitor_mentioned_name, competitorSet);
     }
     
-    // Check query_metrics
+    // Check query metrics
     if (query.query_metrics && query.query_metrics.competitor_mentioned_name) {
-      extractCompetitorNames(query.query_metrics.competitor_mentioned_name, competitorMap);
+      addCompetitorNames(query.query_metrics.competitor_mentioned_name, competitorSet);
     }
     
     // Check associated pages
-    if (query.associated_pages) {
+    if (query.associated_pages && Array.isArray(query.associated_pages)) {
       query.associated_pages.forEach(page => {
         if (page.competitor_mentioned_name) {
-          extractCompetitorNames(page.competitor_mentioned_name, competitorMap);
+          addCompetitorNames(page.competitor_mentioned_name, competitorSet);
         }
       });
     }
   });
   
-  console.log("Normalized competitor map:", Array.from(competitorMap.entries()));
-  console.log("Found unique competitors:", Array.from(competitorMap.values()));
+  return Array.from(competitorSet);
+};
+
+// Helper to add competitor names to a set
+const addCompetitorNames = (names, set) => {
+  if (!names) return;
   
-  // Initialize counts for each unique competitor name (using original casing)
-  const competitorCounts = {};
-  Array.from(competitorMap.values()).forEach(name => {
-    competitorCounts[name] = 0;
-  });
+  if (Array.isArray(names)) {
+    names.forEach(name => {
+      if (name && typeof name === 'string' && name.trim()) {
+        set.add(name.trim());
+      }
+    });
+  } else if (typeof names === 'string' && names.trim()) {
+    set.add(names.trim());
+  }
+};
+
+// Analyze all competitors in the data
+const analyzeCompetitors = () => {
+  // Extract all unique competitor names
+  const competitorNames = extractAllCompetitors();
+  console.log("Found unique competitors:", competitorNames);
   
-  // Second pass: count occurrences using normalized matching
-  props.clientData.query_data.forEach(query => {
-    // Count at query level
-    countCompetitorOccurrences(query, competitorCounts, competitorMap);
-    
-    // Count in associated pages
-    if (query.associated_pages) {
-      query.associated_pages.forEach(page => {
-        countPageCompetitorOccurrences(page, competitorCounts, competitorMap);
-      });
-    }
-  });
+  // Calculate total citations (for rate calculation)
+  const totalCitations = countTotalCitations();
   
-  console.log("Competitor occurrence counts:", competitorCounts);
-  
-  // Create a list of all competitors with their citation rates
-  const competitors = Object.entries(competitorCounts)
-    .map(([name, count]) => {
-      // Calculate the actual citation rate
-      const rate = calculateCitationRate(name, false);
-      
-      // Generate reasonable key query counts based on citation count
-      const keyQueries = Math.max(3, Math.min(8, Math.ceil(count / 2)));
-      
-      // Calculate optimization percentage based on current citation rate
-      const optimizationPercentage = Math.max(25, Math.min(50, Math.round(100 / (rate + 1) * 10)));
-      
-      return {
-        name,
-        count,
-        rate,
-        keyQueries,
-        optimizationPercentage
-      };
-    })
-    .sort((a, b) => b.count - a.count);
-  
-  console.log("Detected competitors with rates:", competitors);
-  
-  if (competitors.length > 0) {
-    // Store all competitors
-    allCompetitors.value = competitors;
-    
-    // Set active competitor to the most frequently mentioned competitor by default
-    if (!activeCompetitor.value || !competitors.find(c => c.name === activeCompetitor.value)) {
-      activeCompetitor.value = competitors[0].name;
-      console.log("Set active competitor to:", activeCompetitor.value);
-    }
-  } else {
-    // No competitors found, clear the array
+  if (totalCitations === 0) {
+    console.log("No citations found in data");
     allCompetitors.value = [];
-    activeCompetitor.value = '';
-    console.log("No competitors found in the data");
-  }
-};
-
-// Helper to extract competitor names and normalize them
-const extractCompetitorNames = (sourceNames, map) => {
-  if (!sourceNames) return;
-  
-  const names = Array.isArray(sourceNames) ? sourceNames : [sourceNames];
-  
-  names.forEach(name => {
-    if (!name) return;
-    
-    // Normalize the name for lookup purposes
-    const normalized = normalizeString(name);
-    
-    // Keep original casing but index by normalized version
-    // If we already have this name, keep the first occurrence (likely has better casing)
-    if (!map.has(normalized)) {
-      map.set(normalized, name);
-    }
-  });
-};
-
-// Helper to count occurrences of competitors in a query
-const countCompetitorOccurrences = (query, counts, competitorMap) => {
-  // Check for direct competitor_mentioned_name
-  if (query.competitor_mentioned_name) {
-    countCompetitorNamesIn(query.competitor_mentioned_name, counts, competitorMap);
+    return;
   }
   
-  // Check in query_metrics
-  if (query.query_metrics && query.query_metrics.competitor_mentioned_name) {
-    countCompetitorNamesIn(query.query_metrics.competitor_mentioned_name, counts, competitorMap);
-  }
-};
-
-// Helper to count occurrences of competitors in a page
-const countPageCompetitorOccurrences = (page, counts, competitorMap) => {
-  if (page.competitor_mentioned_name) {
-    countCompetitorNamesIn(page.competitor_mentioned_name, counts, competitorMap);
-  }
-};
-
-// Helper to count specific competitor names
-const countCompetitorNamesIn = (sourceNames, counts, competitorMap) => {
-  if (!sourceNames) return;
-  
-  const names = Array.isArray(sourceNames) ? sourceNames : [sourceNames];
-  
-  names.forEach(name => {
-    if (!name) return;
+  // Analyze each competitor
+  const competitors = competitorNames.map(name => {
+    // Count mentions of this competitor
+    const mentionCount = countCompetitorMentions(name);
     
-    // Normalize for lookup in our map
-    const normalized = normalizeString(name);
+    // Calculate citation rate
+    const rate = (mentionCount / totalCitations) * 100;
     
-    // Look for this normalized name in our map
-    if (competitorMap.has(normalized)) {
-      const originalName = competitorMap.get(normalized);
-      counts[originalName] = (counts[originalName] || 0) + 1;
-    }
-  });
+    // Generate reasonable key query counts based on citation count
+    const keyQueries = Math.max(3, Math.min(8, Math.ceil(mentionCount / 2)));
+    
+    // Calculate optimization percentage based on rate
+    const optimizationPercentage = Math.max(25, Math.min(50, Math.round(100 / (rate + 1) * 10)));
+    
+    return {
+      name,
+      count: mentionCount,
+      rate,
+      keyQueries,
+      optimizationPercentage
+    };
+  })
+  .filter(comp => comp.count > 0) // Only keep competitors with at least one mention
+  .sort((a, b) => b.count - a.count); // Sort by mention count
+  
+  console.log("Analyzed competitors:", competitors);
+  
+  // Update state
+  allCompetitors.value = competitors;
+  
+  // Set active competitor if none is set or current one isn't valid
+  if (competitors.length > 0 && (!activeCompetitor.value || !competitors.find(c => c.name === activeCompetitor.value))) {
+    activeCompetitor.value = competitors[0].name;
+  }
 };
 
 // Get the display name for the competitor side
@@ -505,7 +388,11 @@ const getActiveCompetitorDetails = () => {
 
 // Get brand citation rate
 const getBrandCitationRate = () => {
-  return calculateCitationRate(brandName.value, true);
+  const totalCitations = countTotalCitations();
+  if (totalCitations === 0) return 0;
+  
+  const brandMentions = countBrandMentions();
+  return (brandMentions / totalCitations) * 100;
 };
 
 // Get competitor citation rate
@@ -530,77 +417,9 @@ const getCitationAdvantage = () => {
   return brandRate - competitorRate; // Can be negative
 };
 
-// Debug function to inspect competitor data
-const debugCompetitorData = () => {
-  if (!props.clientData?.query_data) {
-    console.log("No query data to debug");
-    return;
-  }
-  
-  // Count and log all instances of competitor_mentioned_name
-  let competitorMentionCount = 0;
-  let competitorNames = new Set();
-  
-  props.clientData.query_data.forEach((query, qIndex) => {
-    // Check query level
-    if (query.competitor_mentioned_name) {
-      console.log(`Found competitor_mentioned_name in query ${qIndex}:`, query.competitor_mentioned_name);
-      competitorMentionCount++;
-      
-      if (Array.isArray(query.competitor_mentioned_name)) {
-        query.competitor_mentioned_name.forEach(name => {
-          if (name) competitorNames.add(name);
-        });
-      } else if (query.competitor_mentioned_name) {
-        competitorNames.add(query.competitor_mentioned_name);
-      }
-    }
-    
-    // Check query_metrics
-    if (query.query_metrics && query.query_metrics.competitor_mentioned_name) {
-      console.log(`Found competitor_mentioned_name in query_metrics ${qIndex}:`, 
-                 query.query_metrics.competitor_mentioned_name);
-      competitorMentionCount++;
-      
-      if (Array.isArray(query.query_metrics.competitor_mentioned_name)) {
-        query.query_metrics.competitor_mentioned_name.forEach(name => {
-          if (name) competitorNames.add(name);
-        });
-      } else if (query.query_metrics.competitor_mentioned_name) {
-        competitorNames.add(query.query_metrics.competitor_mentioned_name);
-      }
-    }
-    
-    // Check associated pages
-    if (query.associated_pages) {
-      query.associated_pages.forEach((page, pIndex) => {
-        if (page.competitor_mentioned_name) {
-          console.log(`Found competitor_mentioned_name in query ${qIndex} page ${pIndex}:`, 
-                     page.competitor_mentioned_name);
-          competitorMentionCount++;
-          
-          if (Array.isArray(page.competitor_mentioned_name)) {
-            page.competitor_mentioned_name.forEach(name => {
-              if (name) competitorNames.add(name);
-            });
-          } else if (page.competitor_mentioned_name) {
-            competitorNames.add(page.competitor_mentioned_name);
-          }
-        }
-      });
-    }
-  });
-  
-  console.log("Total competitor mentions found:", competitorMentionCount);
-  console.log("Unique competitor names found:", Array.from(competitorNames));
-};
-
 // Initialize component
 onMounted(() => {
   console.log("CitationMentionRateGauge mounted with client data:", props.clientData);
-  // Debug competitor data to help diagnose issues
-  debugCompetitorData();
-  // Now analyze competitors
   analyzeCompetitors();
 });
 

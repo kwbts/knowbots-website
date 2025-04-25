@@ -247,33 +247,41 @@ const generateDonutSegments = (items) => {
   return segments;
 };
 
-// Helper function to normalize a string for comparison (removes spaces, lowercases)
-const normalizeString = (str) => {
-  if (!str) return '';
-  return str.toLowerCase().replace(/\s+/g, '');
-};
-
-// Helper function to check if a URL contains a client name, accounting for spaces
-const urlContainsClientName = (url, clientNameStr) => {
-  if (!url || !clientNameStr) return false;
+// Helper function to determine platform from various sources
+const determinePlatform = (page, query) => {
+  // Direct data_source property takes precedence
+  if (page.data_source) {
+    return page.data_source.toLowerCase();
+  }
   
-  // Prepare client name variations
-  const normalizedClient = normalizeString(clientNameStr);
-  const noSpaceClient = clientNameStr.toLowerCase().replace(/\s+/g, '');
-  const hyphenatedClient = clientNameStr.toLowerCase().replace(/\s+/g, '-');
+  // Check query ID for platform identifier
+  if (query && query.query_id) {
+    if (query.query_id.toLowerCase().includes('perplexity')) {
+      return 'perplexity';
+    } else if (query.query_id.toLowerCase().includes('chatgpt')) {
+      return 'chatgpt';
+    }
+  }
   
-  // Convert URL to lowercase for case-insensitive comparison
-  const lowercaseUrl = url.toLowerCase();
+  // Check query data_source
+  if (query && query.data_source) {
+    return query.data_source.toLowerCase();
+  }
   
-  // Check for various forms of the client name in the URL
-  return lowercaseUrl.includes(clientNameStr.toLowerCase()) || 
-         lowercaseUrl.includes(noSpaceClient) || 
-         lowercaseUrl.includes(hyphenatedClient);
+  // Check query_metrics data_source
+  if (query && query.query_metrics && query.query_metrics.data_source) {
+    return query.query_metrics.data_source.toLowerCase();
+  }
+  
+  // Default to unknown if no platform information available
+  return 'unknown';
 };
 
 // Analyze platform data - focused on citations
 const analyzePlatformData = () => {
   if (!props.clientData?.query_data || props.clientData.query_data.length === 0) return;
+  
+  console.log(`Analyzing platform data for client: ${clientName.value}`);
   
   // Reset the platforms with fresh data
   platforms.value = [
@@ -309,51 +317,47 @@ const analyzePlatformData = () => {
     }
   ];
   
-  // Extract all associated pages from queries
-  const allPages = [];
+  // Count pages for each platform
+  const platformCounts = {
+    chatgpt: { total: 0, brand: 0, pages: [] },
+    perplexity: { total: 0, brand: 0, pages: [] }
+  };
   
+  // Process all associated pages
   props.clientData.query_data.forEach(query => {
-    if (query.associated_pages && query.associated_pages.length > 0) {
+    if (query.associated_pages && Array.isArray(query.associated_pages)) {
       query.associated_pages.forEach(page => {
-        // Add page with platform info derived from query ID
-        const platform = 
-          query.query_id.toLowerCase().includes('perplexity') ? 'perplexity' : 
-          query.query_id.toLowerCase().includes('chatgpt') ? 'chatgpt' : 
-          page.data_source || 'unknown';
+        // Determine platform (ChatGPT or Perplexity)
+        const platform = determinePlatform(page, query);
         
-        allPages.push({
-          ...page,
-          platform,
-          query_id: query.query_id
-        });
+        // Skip pages with unknown platform
+        if (platform !== 'chatgpt' && platform !== 'perplexity') {
+          return;
+        }
+        
+        // Increment total count for this platform
+        platformCounts[platform].total++;
+        
+        // Add this page to the platform's pages
+        platformCounts[platform].pages.push(page);
+        
+        // Check if it's a brand mention
+        if (page.brand_mentioned === true || 
+            page.brand_mentioned === "checked" ||
+            page.is_client_domain === true || 
+            page.is_client_domain === "checked") {
+          platformCounts[platform].brand++;
+        }
       });
     }
   });
   
-  console.log(`Total pages extracted: ${allPages.length}`);
-  
-  // Group pages by platform
-  const chatgptPages = allPages.filter(page => page.platform === 'chatgpt');
-  const perplexityPages = allPages.filter(page => page.platform === 'perplexity');
-  
-  console.log(`Pages grouped by platform - ChatGPT: ${chatgptPages.length}, Perplexity: ${perplexityPages.length}`);
-  
-  // Map pages to platforms
-  const platformPages = {
-    'chatgpt': chatgptPages,
-    'perplexity': perplexityPages
-  };
-  
-  // Get the normalized client name for URL matching
-  const normalizedClientName = clientName.value;
-  
-  // Process each platform separately
+  // Process metrics for each platform
   platforms.value.forEach(platform => {
-    const pages = platformPages[platform.name];
-    console.log(`Processing ${pages ? pages.length : 0} pages for ${platform.name}`);
+    const platformData = platformCounts[platform.name];
     
     // Skip if no pages for this platform
-    if (!pages || pages.length === 0) {
+    if (platformData.total === 0) {
       platform.contentTypes = [
         { type: 'Blog', percentage: 45 },
         { type: 'Product', percentage: 35 },
@@ -362,17 +366,16 @@ const analyzePlatformData = () => {
       return;
     }
     
-    // Count metrics for this platform
-    const totalPlatformCitations = pages.length;
+    // Update platform metrics
+    platform.totalCitations = platformData.total;
+    platform.citationCount = platformData.brand;
     
-    // Filter for client pages with special handling for spaces in client name
-    const clientPages = pages.filter(page => 
-      page.is_client_domain === true || 
-      page.is_client_domain === "checked" ||
-      (page.citation_url && urlContainsClientName(page.citation_url, normalizedClientName))
-    );
-    
-    const brandCitations = clientPages.length;
+    // Calculate client rate
+    if (platformData.total > 0) {
+      platform.clientRate = (platformData.brand / platformData.total) * 100;
+    } else {
+      platform.clientRate = 0;
+    }
     
     // Calculate quality metrics
     let totalQuality = 0;
@@ -391,10 +394,18 @@ const analyzePlatformData = () => {
     let htmlStructureScoreCount = 0;
     let gptAnalysisScoreCount = 0;
     
-    // Process client pages for quality and content type
+    // Process brand pages for quality metrics
     const contentTypes = {};
     
-    clientPages.forEach(page => {
+    // Only look at brand pages for content metrics
+    const brandPages = platformData.pages.filter(page => 
+      page.brand_mentioned === true || 
+      page.brand_mentioned === "checked" ||
+      page.is_client_domain === true || 
+      page.is_client_domain === "checked"
+    );
+    
+    brandPages.forEach(page => {
       // Add to quality calculation
       if (page.citation_match_quality) {
         totalQuality += page.citation_match_quality;
@@ -440,19 +451,19 @@ const analyzePlatformData = () => {
       // Track content type for client pages
       if (page.content_type) {
         contentTypes[page.content_type] = (contentTypes[page.content_type] || 0) + 1;
+      } else if (page.page_title) {
+        // If no explicit content type, try to infer from title
+        if (page.page_title.toLowerCase().includes('blog')) {
+          contentTypes['Blog'] = (contentTypes['Blog'] || 0) + 1;
+        } else if (page.page_title.toLowerCase().includes('product')) {
+          contentTypes['Product'] = (contentTypes['Product'] || 0) + 1;
+        } else if (page.page_title.toLowerCase().includes('doc')) {
+          contentTypes['Documentation'] = (contentTypes['Documentation'] || 0) + 1;
+        } else {
+          contentTypes['Other'] = (contentTypes['Other'] || 0) + 1;
+        }
       }
     });
-    
-    // Update platform metrics
-    platform.totalCitations = totalPlatformCitations;
-    platform.citationCount = brandCitations;
-    
-    // Calculate client rate as percentage of brand citations out of total citations
-    if (totalPlatformCitations > 0) {
-      platform.clientRate = (brandCitations / totalPlatformCitations) * 100;
-    } else {
-      platform.clientRate = 0;
-    }
     
     // Calculate average quality score
     if (qualityCount > 0) {
@@ -513,8 +524,6 @@ const analyzePlatformData = () => {
     const contentTypeEntries = Object.entries(contentTypes);
     const totalContent = contentTypeEntries.reduce((sum, [_, count]) => sum + count, 0);
     
-    console.log(`Platform ${platform.name} content types:`, contentTypes);
-    
     if (contentTypeEntries.length > 0 && totalContent > 0) {
       platform.contentTypes = contentTypeEntries
         .map(([type, count]) => ({
@@ -544,12 +553,7 @@ const analyzePlatformData = () => {
       rate: platform.clientRate,
       avgQuality: platform.avgQuality,
       matchScore: platform.matchScore,
-      uniqueContentScore: platform.uniqueContentScore,
-      avgDepth: platform.avgDepth,
-      avgOptimization: platform.avgOptimization,
-      avgHtmlStructure: platform.avgHtmlStructure,
-      avgGptAnalysis: platform.avgGptAnalysis,
-      contentTypes: platform.contentTypes
+      uniqueContentScore: platform.uniqueContentScore
     });
   });
 };

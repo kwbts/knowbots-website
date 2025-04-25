@@ -100,8 +100,8 @@ const totalQueries = computed(() => {
   return props.clientData?.query_data?.length || 0;
 });
 
-// Count associated pages for each query
-const countAssociatedPages = () => {
+// Calculate total number of associated pages (total citations)
+const totalCitations = computed(() => {
   if (!props.clientData?.query_data) return 0;
   
   let count = 0;
@@ -111,41 +111,30 @@ const countAssociatedPages = () => {
     }
   });
   return count;
-};
-
-// Calculate total citations
-const totalCitations = computed(() => {
-  const pageCount = countAssociatedPages();
-  
-  // If we have associated pages, use that as our citation count
-  if (pageCount > 0) {
-    return pageCount;
-  }
-  
-  // Otherwise, try to use citation_count properties
-  if (!props.clientData?.query_data) return 0;
-  
-  return props.clientData.query_data.reduce((total, query) => {
-    // Try to extract citation count from various places
-    let citationCount = 0;
-    
-    if (typeof query.citation_count === 'number') {
-      citationCount = query.citation_count;
-    } else if (query.query_metrics && typeof query.query_metrics.citation_count === 'number') {
-      citationCount = query.query_metrics.citation_count;
-    } else if (query.associated_pages_count && typeof query.associated_pages_count === 'number') {
-      citationCount = query.associated_pages_count;
-    }
-    
-    return total + citationCount;
-  }, 0);
 });
 
-// Calculate brand mentioned queries
+// Count pages with brand mentions (brand citations)
+const brandUrlCitations = computed(() => {
+  if (!props.clientData?.query_data) return 0;
+  
+  let count = 0;
+  props.clientData.query_data.forEach(query => {
+    if (query.associated_pages && Array.isArray(query.associated_pages)) {
+      query.associated_pages.forEach(page => {
+        if (page.brand_mentioned === true || page.brand_mentioned === "checked" || 
+            page.is_client_domain === true || page.is_client_domain === "checked") {
+          count++;
+        }
+      });
+    }
+  });
+  return count;
+});
+
+// Calculate queries that have brand mentions
 const brandMentionedQueries = computed(() => {
   if (!props.clientData?.query_data) return 0;
   
-  // Count brand mentioned queries more accurately
   let count = 0;
   
   props.clientData.query_data.forEach(query => {
@@ -188,52 +177,6 @@ const brandMentionedQueries = computed(() => {
 const mentionRate = computed(() => {
   if (totalQueries.value === 0) return 0;
   return (brandMentionedQueries.value / totalQueries.value) * 100;
-});
-
-// Calculate brand URL citations (citations to the brand's domain)
-const brandUrlCitations = computed(() => {
-  // If we don't have client data or client name, return 0
-  if (!props.clientData?.query_data || !props.clientData?.client_name) return 0;
-  
-  // Normalize client name to lowercase for comparison
-  const clientNameLower = props.clientData.client_name.toLowerCase();
-  let count = 0;
-  
-  // Count citations to brand URLs by checking associated pages
-  props.clientData.query_data.forEach(query => {
-    if (query.associated_pages && Array.isArray(query.associated_pages)) {
-      query.associated_pages.forEach(page => {
-        let isBrandPage = false;
-        
-        // 1. Check is_client_domain flag
-        if (page.is_client_domain === true || page.is_client_domain === "checked") {
-          isBrandPage = true;
-        }
-        // 2. Check brand_mentioned flag
-        else if (page.brand_mentioned === true || page.brand_mentioned === "checked") {
-          isBrandPage = true;
-        }
-        // 3. Check if citation_url contains client name
-        else if (page.citation_url && 
-                typeof page.citation_url === 'string' && 
-                page.citation_url.toLowerCase().includes(clientNameLower)) {
-          isBrandPage = true;
-        }
-        // 4. Check if domain_name contains client name
-        else if (page.domain_name && 
-                typeof page.domain_name === 'string' && 
-                page.domain_name.toLowerCase().includes(clientNameLower)) {
-          isBrandPage = true;
-        }
-        
-        if (isBrandPage) {
-          count++;
-        }
-      });
-    }
-  });
-  
-  return count;
 });
 
 // Calculate citation rate (percentage of brand URLs among all citations)
