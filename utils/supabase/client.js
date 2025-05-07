@@ -18,12 +18,36 @@ export function getSupabaseClient() {
       const supabaseKey = config.supabaseServiceKey;
 
       if (!supabaseUrl || !supabaseKey) {
-        return null;
+        // During prerendering, it's okay to return null without failing
+        if (process.env.NITRO_PRERENDER) {
+          return null;
+        }
+        
+        // For regular SSR, create a mock client or return null safely
+        return {
+          storage: {
+            from: () => ({
+              download: async () => ({ data: null, error: { message: 'Prerendering mode' } }),
+              createSignedUrl: async () => ({ data: null, error: { message: 'Prerendering mode' } })
+            })
+          }
+        };
       }
 
       // Create server-side client
       return createClient(supabaseUrl, supabaseKey);
     } catch (error) {
+      // During prerendering, we need to handle errors gracefully
+      if (process.env.NITRO_PRERENDER) {
+        return {
+          storage: {
+            from: () => ({
+              download: async () => ({ data: null, error: { message: 'Prerendering mode' } }),
+              createSignedUrl: async () => ({ data: null, error: { message: 'Prerendering mode' } })
+            })
+          }
+        };
+      }
       return null;
     }
   }

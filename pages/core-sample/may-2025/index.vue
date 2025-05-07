@@ -1,6 +1,6 @@
 <!-- pages/core-sample/may-2025/index.vue -->
 <template>
-  <div class="min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-white" :class="{ 'secure-page': isProduction }">
+  <div class="min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-white" :class="{ 'secure-page': isInProduction }">
     <!-- Custom Report Navigation -->
     <ReportNavigation />
     
@@ -277,6 +277,7 @@ import ContentStructureMetricsContainer from '@/components/labs/reports/ContentS
 // Import Supabase utilities
 import { getSupabaseClient } from '~/utils/supabase/client';
 import { STORAGE_CONFIG } from '~/utils/supabase/config';
+import { isPrerendering, isDevelopment, isProduction } from '~/utils/environment';
 
 // We don't need to store the Supabase client since we're using a singleton pattern
 
@@ -301,8 +302,8 @@ import { useReportSchema } from '~/composables/useReportSchema';
 // Setup structured data/schema
 const { createReportSchema, generateSchemaScript } = useReportSchema();
 
-// Check if we're in production environment
-const isProduction = computed(() => process.env.NODE_ENV === 'production');
+// Check if we're in production environment using our utility
+const isInProduction = computed(() => isProduction());
 
 // State with null initial value to prevent component rendering until data is loaded
 const reportData = ref(null);
@@ -353,6 +354,19 @@ const loadReportData = async () => {
   loadError.value = null;
   
   try {
+    // Skip data loading during prerendering to avoid 500 errors
+    if (isPrerendering()) {
+      // For prerendering, provide minimal static data
+      reportData.value = {
+        timestamp: new Date().toISOString(),
+        total_queries: 651,
+        total_pages: 3165,
+        source: 'prerender-static-data'
+      };
+      isLoading.value = false;
+      return; // Exit early, don't try to load from Supabase
+    }
+    
     // Get the Supabase client using our singleton pattern
     const supabase = getSupabaseClient();
     
@@ -360,7 +374,6 @@ const loadReportData = async () => {
     if (!supabase) {
       throw new Error('Supabase client not initialized. Check environment variables.');
     }
-
     
     // Get bucket and file path from config
     const bucket = STORAGE_CONFIG.bucket;

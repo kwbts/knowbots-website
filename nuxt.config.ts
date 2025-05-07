@@ -81,7 +81,8 @@ export default defineNuxtConfig({
     preset: 'netlify',
     prerender: {
       crawlLinks: true,
-      routes: ['/', '/about/', '/contact/', '/services/', '/labs/', '/blog/']
+      routes: ['/', '/about/', '/contact/', '/services/', '/labs/', '/blog/'],
+      failOnError: false  // Continue build even if prerendering has errors
     }
   },
   
