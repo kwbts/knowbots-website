@@ -2,5 +2,10 @@
 User-agent: *
 Allow: /
 
+# Disallow all JSON files
+Disallow: /*.json$
+Disallow: /sample-data.json
+Disallow: /*/data.json
+
 # Sitemap
 Sitemap: https://knowbots.ca/sitemap.xml

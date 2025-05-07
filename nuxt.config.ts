@@ -95,13 +95,27 @@ export default defineNuxtConfig({
         /\?/,
         // Ignore specific paths that might cause issues with Supabase
         '/citebots/admin/',
-        '/citebots/dashboard/'
+        '/citebots/dashboard/',
+        // Ignore all JSON files
+        /\.json$/,
+        // Ignore specific data files
+        '/sample-data.json',
+        '/*/data.json'
       ]
     },
     routeRules: {
       // Make dynamic routes static at build time, using static fallbacks
       '/blog/**': { static: true },
-      '/core-sample/**': { static: true }
+      '/core-sample/**': { static: true },
+      
+      // Protect JSON files
+      '/**/*.json': {
+        headers: {
+          'X-Robots-Tag': 'noindex, nofollow',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Content-Type': 'application/json; charset=utf-8'
+        }
+      }
     }
   },
   
