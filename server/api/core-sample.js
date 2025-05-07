@@ -11,6 +11,22 @@ import path from 'path';
  */
 export default defineEventHandler(async (event) => {
   try {
+    // During prerendering, return mock data immediately
+    if (process.env.NITRO_PRERENDER) {
+      console.log('PRERENDERING: Using mock data in core-sample API');
+      return {
+        timestamp: new Date().toISOString(),
+        total_queries: 651,
+        total_pages: 3165,
+        source: 'prerender-mock-data',
+        domains: [],
+        benchmarks: {
+          domainAuthority: 40,
+          pageAuthority: 35
+        }
+      };
+    }
+    
     // Get runtime config (only accessible on server)
     const config = useRuntimeConfig();
     

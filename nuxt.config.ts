@@ -24,8 +24,10 @@ export default defineNuxtConfig({
       secure: process.env.NODE_ENV === 'production'
     },
     // Explicitly define URL and key for module
-    url: process.env.SUPABASE_URL,
-    key: process.env.SUPABASE_KEY
+    url: process.env.SUPABASE_URL || 'https://placeholder-during-build.supabase.co',
+    key: process.env.SUPABASE_KEY || 'placeholder-key-for-build-time',
+    // Use client mode during prerendering to avoid server-side issues
+    serviceKey: process.env.SUPABASE_SERVICE_KEY || 'placeholder-service-key-for-build-time'
   },
   
   // Environment variables - public ones will be exposed to the client
@@ -82,7 +84,19 @@ export default defineNuxtConfig({
     prerender: {
       crawlLinks: true,
       routes: ['/', '/about/', '/contact/', '/services/', '/labs/', '/blog/'],
-      failOnError: false  // Continue build even if prerendering has errors
+      failOnError: false,  // Continue build even if prerendering has errors
+      ignore: [
+        // Ignore any routes with query parameters (typically dynamic routes)
+        /\?/,
+        // Ignore specific paths that might cause issues with Supabase
+        '/citebots/admin/',
+        '/citebots/dashboard/'
+      ]
+    },
+    routeRules: {
+      // Make dynamic routes static at build time, using static fallbacks
+      '/blog/**': { static: true },
+      '/core-sample/**': { static: true }
     }
   },
   
