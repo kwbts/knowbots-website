@@ -64,7 +64,7 @@
               <p>So we ran an experiment.</p>
               <p>We analyzed 651 queries across both platforms, examining 3,165 cited pages. We dissected everything—HTML structure, technical SEO elements, page speed, domain metrics, and had AI evaluate content quality, reading level, and depth.</p>
               <p>This isn't the final word on GEO—it's an initial core sample drilling into the bedrock of LLM search. The patterns we've found should spark experimentation, not rigid conclusions.</p>
-              <p>Of the 150 data points collected, we've only included those with reasonable confidence levels. Want the full methodology? Check our blog: "Running large-scale LLM analysis for Generative Engine Optimization."</p>
+              <p>Of the 150 data points collected, we've only included those with reasonable confidence levels. Want the full methodology? Check our blog: "<a href="https://knowbots.ca/blog/large-scale-llm-analysis-geo/">Running large-scale LLM analysis for Generative Engine Optimization</a>."</p>
               <p>We'll extract another core sample in June 2025. Until then, it's time to experiment and explore!</p>
               <p class="mt-6">Happy optimizing,</p>
               <p class="font-signature text-2xl text-burntOrangeDark dark:text-orange-400 mt-2">Jon Taylor</p>
