@@ -253,6 +253,13 @@ export async function getSignedUrl(bucket, filePath) {
     return null;
   }
   
+  // For production and development, first try the API endpoint
+  const apiUrl = '/api/core-sample';
+  console.log('Using API endpoint instead of signed URL:', apiUrl);
+  return apiUrl;
+  
+  /* 
+  // Below code is temporarily disabled - we'll use the API endpoint instead
   try {
     // Get Supabase client using our singleton pattern
     const client = getSupabaseClient();
@@ -273,9 +280,11 @@ export async function getSignedUrl(bucket, filePath) {
       return null;
     }
     
+    console.log('Successfully created signed URL');
     return data?.signedUrl;
   } catch (error) {
     console.warn('Exception in getSignedUrl:', error?.message);
     return null;
   }
+  */
 }

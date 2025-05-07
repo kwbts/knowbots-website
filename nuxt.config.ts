@@ -42,6 +42,7 @@ export default defineNuxtConfig({
       // Supabase configuration for client-side
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseKey: process.env.SUPABASE_KEY,
+      supabaseSignedUrl: process.env.SUPABASE_SIGNED_URL,
       
       // Storage configuration
       storageBucket: process.env.STORAGE_BUCKET || 'may-core-sample',
@@ -73,6 +74,10 @@ export default defineNuxtConfig({
   
   // External dependencies
   vite: {
+    define: {
+      // Fix for "global is not defined" error with Supabase
+      global: 'window',
+    },
     ssr: {
       noExternal: ['rxjs', '@sanity/client', '@sanity/image-url', '@supabase/supabase-js'],
     },

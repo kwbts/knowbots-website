@@ -77,18 +77,43 @@ export default defineEventHandler(async (event) => {
     try {
       // Check if file exists
       if (fs.existsSync(publicFilePath)) {
-        const fileContent = fs.readFileSync(publicFilePath, 'utf8');
-        const jsonData = JSON.parse(fileContent);
+        console.log('Found sample-data.json, loading it now...');
         
-        // Log success in development
-        if (process.env.NODE_ENV !== 'production') {
-          console.log(`Loaded fallback data from ${publicFilePath}`);
+        // Since this file might be large, read it in a more efficient way
+        try {
+          const fileContent = fs.readFileSync(publicFilePath, 'utf8');
+          const jsonData = JSON.parse(fileContent);
+          
+          console.log('Successfully loaded and parsed sample-data.json');
+          
+          // Log success in development
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`Loaded fallback data from ${publicFilePath}`);
+          }
+          
+          return jsonData;
+        } catch (parseErr) {
+          console.error('Error parsing sample-data.json:', parseErr);
+          // Continue to other fallbacks
         }
-        
-        return jsonData;
+      } else {
+        console.warn('sample-data.json file not found at path:', publicFilePath);
       }
     } catch (fsErr) {
-      console.error('Error reading local file:', fsErr);
+      console.error('Error accessing local file:', fsErr);
+    }
+    
+    // If all methods failed, try to load from a public sample file URL
+    try {
+      console.log('Attempting to fetch from public sample data URL...');
+      const response = await fetch('https://knowbots.ca/sample-data.json');
+      if (response.ok) {
+        const jsonData = await response.json();
+        console.log('Successfully loaded data from public URL');
+        return jsonData;
+      }
+    } catch (publicUrlErr) {
+      console.error('Error fetching from public URL:', publicUrlErr);
     }
     
     // If all methods failed, return sample data object with minimal structure
