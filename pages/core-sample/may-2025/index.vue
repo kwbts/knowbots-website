@@ -70,7 +70,7 @@
               <p class="font-signature text-2xl text-burntOrangeDark dark:text-orange-400 mt-2">Jon Taylor</p>
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400 mt-4">
-              Last updated: May 6, 2025
+              Last updated: May 8, 2025
             </div>
           </div>
         </div>
