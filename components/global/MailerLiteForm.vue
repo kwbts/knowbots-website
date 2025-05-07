@@ -225,18 +225,32 @@ const handleSubmit = async (event) => {
 <style scoped>
 /* Custom styles for the form */
 .thank-you-message {
-  @apply text-center;
+  text-align: center;
 }
 
 .thank-you-message h2 {
-  @apply text-3xl font-bold mb-4 text-darkTeal font-heading;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #1E6F79; /* darkTeal */
+  font-family: 'Archivo', sans-serif; /* font-heading */
 }
 
 .thank-you-message p {
-  @apply text-lg text-darkGray font-body mb-4;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  color: #3A3A3A; /* darkGray */
+  font-family: 'Alegreya', serif; /* font-body */
+  margin-bottom: 1rem;
 }
 
 .thank-you-message a {
-  @apply text-burntOrange hover:text-jasperOrange font-body;
+  color: #D97706; /* burntOrange */
+  font-family: 'Alegreya', serif; /* font-body */
+}
+
+.thank-you-message a:hover {
+  color: #C05D3B; /* jasperOrange */
 }
 </style>
