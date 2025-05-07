@@ -124,13 +124,6 @@
       </div>
     </div>
     
-    <!-- Key Insight -->
-    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-lg p-4">
-      <p class="text-sm text-blue-700 dark:text-blue-400">
-        <span class="font-medium">Key Insight:</span> 
-        {{ getFreshnessInsight() }}
-      </p>
-    </div>
   </div>
 </template>
 
@@ -153,32 +146,139 @@ const platforms = [
 
 const activePlatform = ref('all');
 
-// Content freshness distribution by platform (default values)
-const contentFreshnessDistribution = {
-  all: {
-    '0-30': 18.2,   // 0-30 days
-    '1-3': 22.6,    // 1-3 months
-    '3-6': 16.9,    // 3-6 months
-    '6-12': 12.4,   // 6-12 months
-    '1+': 9.8,      // 1+ years
-    'unknown': 20.1 // Unknown/blank dates
-  },
-  chatgpt: {
-    '0-30': 21.5,
-    '1-3': 24.7,
-    '3-6': 14.2,
-    '6-12': 10.8,
-    '1+': 8.3,
-    'unknown': 20.5
-  },
-  perplexity: {
-    '0-30': 15.3,
-    '1-3': 20.9,
-    '3-6': 19.2,
-    '6-12': 13.8,
-    '1+': 11.1,
-    'unknown': 19.7
+// Calculate content freshness distribution from report data
+const calculateFreshnessDistribution = (reportData) => {
+  // Initialize distribution structure
+  const distribution = {
+    all: {
+      '0-30': 0,   // 0-30 days
+      '1-3': 0,    // 1-3 months
+      '3-6': 0,    // 3-6 months
+      '6-12': 0,   // 6-12 months
+      '1+': 0,      // 1+ years
+      'unknown': 0 // Unknown/blank dates
+    },
+    chatgpt: {
+      '0-30': 0,
+      '1-3': 0,
+      '3-6': 0,
+      '6-12': 0,
+      '1+': 0,
+      'unknown': 0
+    },
+    perplexity: {
+      '0-30': 0,
+      '1-3': 0,
+      '3-6': 0,
+      '6-12': 0,
+      '1+': 0,
+      'unknown': 0
+    }
+  };
+
+  if (!reportData || !reportData.clients) {
+    return distribution;
   }
+  
+  try {
+    // Current date for comparison
+    const now = new Date();
+    
+    // Process each client's data
+    let totalPagesCounted = 0;
+    
+    reportData.clients.forEach(client => {
+      if (!client.query_data) return;
+      
+      // Go through each query
+      client.query_data.forEach(query => {
+        if (!query.associated_pages) return;
+        
+        // Determine if this is a chatgpt or perplexity query
+        const source = query.query_id.includes('chatgpt') ? 'chatgpt' : 
+                     query.query_id.includes('perplexity') ? 'perplexity' : 'all';
+        
+        // Process each page associated with the query
+        query.associated_pages.forEach(page => {
+          // Get the last_modified_date from the page data
+          const lastModifiedStr = page.last_modified_date;
+          
+          // If date is missing or invalid, increment the unknown category
+          if (!lastModifiedStr) {
+            distribution[source]['unknown']++;
+            if (source !== 'all') {
+              distribution.all['unknown']++;
+            }
+            totalPagesCounted++;
+            return;
+          }
+          
+          try {
+            // Parse the date string
+            const lastModified = new Date(lastModifiedStr);
+            
+            // Check if date is valid
+            if (isNaN(lastModified.getTime())) {
+              distribution[source]['unknown']++;
+              if (source !== 'all') {
+                distribution.all['unknown']++;
+              }
+              totalPagesCounted++;
+              return;
+            }
+            
+            // Calculate age in days
+            const ageInDays = Math.floor((now - lastModified) / (1000 * 60 * 60 * 24));
+            
+            // Determine freshness category
+            let category = 'unknown';
+            if (ageInDays <= 30) {
+              category = '0-30';
+            } else if (ageInDays <= 90) {
+              category = '1-3';
+            } else if (ageInDays <= 180) {
+              category = '3-6';
+            } else if (ageInDays <= 365) {
+              category = '6-12';
+            } else {
+              category = '1+';
+            }
+            
+            // Increment counters for both platform-specific and all platforms
+            distribution[source][category]++;
+            if (source !== 'all') {
+              distribution.all[category]++;
+            }
+            
+            totalPagesCounted++;
+          } catch (dateError) {
+            console.error('Error parsing date:', dateError);
+            distribution[source]['unknown']++;
+            if (source !== 'all') {
+              distribution.all['unknown']++;
+            }
+            totalPagesCounted++;
+          }
+        });
+      });
+    });
+    
+    // Convert counts to percentages for each platform
+    for (const platform in distribution) {
+      const platformTotal = Object.values(distribution[platform]).reduce((sum, count) => sum + count, 0);
+      
+      if (platformTotal > 0) {
+        for (const category in distribution[platform]) {
+          distribution[platform][category] = (distribution[platform][category] / platformTotal) * 100;
+        }
+      }
+    }
+    
+  } catch (err) {
+    console.error('Error calculating content freshness distribution:', err);
+  }
+  
+  return distribution;
 };
 
 // Helper method to get platform-specific styling classes for buttons
@@ -204,48 +304,71 @@ const formatPercentage = (value) => {
   return Math.round(value) + '%';
 };
 
+// Get freshness distributions from report data
+const freshnessDistributions = computed(() => {
+  return calculateFreshnessDistribution(props.reportData);
+});
+
 // Get percentage for each freshness category based on the active platform
 const getFreshnessPercentage = (category) => {
-  const distribution = contentFreshnessDistribution[activePlatform.value] || contentFreshnessDistribution.all;
+  const distribution = freshnessDistributions.value[activePlatform.value] || freshnessDistributions.value.all;
   return distribution[category] || 0;
 };
 
 // Get median age bracket for content
 const getMedianAge = () => {
-  const platform = activePlatform.value;
-  // This is a simplified approach - in a real implementation
-  // you would calculate the true median from raw data
-  const medianMap = {
-    'all': '2.8 months',
-    'chatgpt': '2.3 months',
-    'perplexity': '3.2 months'
-  };
-  
-  return medianMap[platform] || medianMap.all;
+  try {
+    const platform = activePlatform.value;
+    const distribution = freshnessDistributions.value[platform] || freshnessDistributions.value.all;
+    
+    // Calculate cumulative percentages to find the median (50% mark)
+    const categories = ['0-30', '1-3', '3-6', '6-12', '1+'];
+    let cumulative = 0;
+    
+    // First calculate the total percentage without unknown
+    const totalKnown = categories.reduce((sum, category) => sum + distribution[category], 0);
+    
+    if (totalKnown <= 0) {
+      return 'N/A';
+    }
+    
+    // Find the category where cumulative goes over 50%
+    for (const category of categories) {
+      // Normalize the percentage relative to known dates only
+      const normalizedPct = totalKnown > 0 ? (distribution[category] / totalKnown) * 100 : 0;
+      cumulative += normalizedPct;
+      
+      // If we've crossed the 50% mark, we've found our median
+      if (cumulative >= 50) {
+        switch (category) {
+          case '0-30': return '< 1 month';
+          case '1-3': return '1-3 months';
+          case '3-6': return '3-6 months';
+          case '6-12': return '6-12 months';
+          case '1+': return '> 1 year';
+          default: return 'Unknown';
+        }
+      }
+    }
+    
+    return 'N/A'; // If we somehow didn't find a median
+  } catch (error) {
+    console.error('Error calculating median age:', error);
+    return 'N/A';
+  }
 };
 
 // Calculate percentage of recent content (< 3 months)
 const getRecentContentPercentage = () => {
-  const distribution = contentFreshnessDistribution[activePlatform.value] || contentFreshnessDistribution.all;
-  return (distribution['0-30'] || 0) + (distribution['1-3'] || 0);
+  try {
+    const distribution = freshnessDistributions.value[activePlatform.value] || freshnessDistributions.value.all;
+    return (distribution['0-30'] || 0) + (distribution['1-3'] || 0);
+  } catch (error) {
+    console.error('Error calculating recent content percentage:', error);
+    return 0;
+  }
 };
 
-// Get insight text based on platform
-const getFreshnessInsight = () => {
-  const platform = activePlatform.value;
-  const recentContent = getRecentContentPercentage();
-  const unknownData = getFreshnessPercentage('unknown');
-  
-  if (platform === 'all') {
-    return `${formatPercentage(recentContent)} of all cited content is less than 3 months old, suggesting LLMs favor recent content. Note that ${formatPercentage(unknownData)} of citations have no clear publish date, which may affect content freshness analysis.`;
-  } else if (platform === 'chatgpt') {
-    return `ChatGPT shows a stronger preference for recent content (${formatPercentage(recentContent)}), with ${formatPercentage(getFreshnessPercentage('0-30'))} of citations from content less than 30 days old—higher than industry average.`;
-  } else if (platform === 'perplexity') {
-    return `Perplexity cites a more balanced age distribution with stronger representation of 3-6 month old content (${formatPercentage(getFreshnessPercentage('3-6'))}), suggesting potentially more emphasis on established rather than trending content.`;
-  }
-  
-  return "Content freshness analysis shows a significant preference for recently updated content across all platforms.";
-};
 </script>
 
 <style scoped>

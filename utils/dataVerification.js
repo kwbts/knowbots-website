@@ -74,11 +74,11 @@ export const checkAllClientDataFiles = async () => {
 };
 
 /**
- * Get data file path for a client
+ * Get data file path for a client using slug conversion
  * @param {string} clientName - The client name
  * @returns {string} The data file path
  */
-export const getClientDataPath = (clientName) => {
+export const getClientDataPathBySlug = (clientName) => {
   const clientSlug = clientNameToSlug(clientName);
   // Add cache-busting param in production
   const cacheBuster = isProduction() ? `?t=${Date.now()}` : '';

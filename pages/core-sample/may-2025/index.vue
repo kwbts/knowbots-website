@@ -32,14 +32,22 @@
     <!-- Error State -->
     <div v-else-if="loadError" class="max-w-[1140px] mx-auto px-4 py-12">
       <div class="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-6 rounded-lg shadow-md">
-        <h3 class="text-xl font-semibold mb-2">Supabase Data Loading Error</h3>
+        <h3 class="text-xl font-semibold mb-2">Supabase Connection Error</h3>
         <p>{{ loadError }}</p>
-        <p class="mt-2 text-sm">This page relies on Supabase for data. Check the browser console for detailed error information.</p>
+        <p class="mt-2 text-sm">
+          This report requires a direct connection to Supabase storage. 
+          Please check your network connection and Supabase credentials.
+        </p>
+        <div class="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono overflow-x-auto">
+          <p>Bucket: {{ STORAGE_CONFIG.bucket }}</p>
+          <p>File: {{ STORAGE_CONFIG.filePath }}</p>
+          <p>Supabase Client: {{ getSupabaseClient() ? 'Initialized' : 'Failed' }}</p>
+        </div>
         <button 
           @click="loadReportData"
           class="mt-4 px-4 py-2 bg-gradient-to-r from-burntOrangeDark to-jasperOrange hover:from-burntOrange hover:to-burntOrangeDark text-white rounded-md transition-colors"
         >
-          Try Again
+          Retry Connection
         </button>
       </div>
     </div>
@@ -96,21 +104,37 @@
       </section>
 
       <!-- Domain Metrics Section -->
-      <section class="py-8 bg-gray-50 dark:bg-gray-800">
+      <section v-if="reportData && reportData.clients && reportData.clients.length > 0" class="py-8 bg-gray-50 dark:bg-gray-800">
         <div class="max-w-[1140px] mx-auto px-4">
           <DomainMetricsComponent :reportData="reportData" />
         </div>
       </section>
+      <section v-else-if="!isLoading && !loadError" class="py-8 bg-gray-50 dark:bg-gray-800">
+        <div class="max-w-[1140px] mx-auto px-4">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center">
+            <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-6">Domain Metrics</h3>
+            <p class="text-gray-500 dark:text-gray-400">Loading domain metrics data...</p>
+          </div>
+        </div>
+      </section>
       
       <!-- Domain Authority Citation Metrics Section -->
-      <section class="py-8 bg-white dark:bg-gray-900">
+      <section v-if="reportData && reportData.clients && reportData.clients.length > 0" class="py-8 bg-white dark:bg-gray-900">
         <div class="max-w-[1140px] mx-auto px-4">
           <DomainAuthorityCitationMetric :reportData="reportData" />
         </div>
       </section>
+      <section v-else-if="!isLoading && !loadError" class="py-8 bg-white dark:bg-gray-900">
+        <div class="max-w-[1140px] mx-auto px-4">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center">
+            <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-6">Domain Authority & Citation Distribution</h3>
+            <p class="text-gray-500 dark:text-gray-400">Loading domain authority data...</p>
+          </div>
+        </div>
+      </section>
       
       <!-- On-page SEO & Core Web Vitals Two-Column Section -->
-      <section class="py-8 bg-white dark:bg-gray-900">
+      <section v-if="reportData && reportData.clients && reportData.clients.length > 0" class="py-8 bg-white dark:bg-gray-900">
         <div class="max-w-[1140px] mx-auto px-4">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- On-page SEO Component (Left Column) -->
@@ -121,43 +145,97 @@
           </div>
         </div>
       </section>
+      <section v-else-if="!isLoading && !loadError" class="py-8 bg-white dark:bg-gray-900">
+        <div class="max-w-[1140px] mx-auto px-4">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center">
+              <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-6">On-page SEO</h3>
+              <p class="text-gray-500 dark:text-gray-400">Loading SEO data...</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center">
+              <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-6">Core Web Vitals</h3>
+              <p class="text-gray-500 dark:text-gray-400">Loading web vitals data...</p>
+            </div>
+          </div>
+        </div>
+      </section>
       
       <!-- Content Structure Metrics Section -->
-      <section class="py-8 bg-white dark:bg-gray-900">
+      <section v-if="reportData && reportData.clients && reportData.clients.length > 0" class="py-8 bg-white dark:bg-gray-900">
         <div class="max-w-[1140px] mx-auto px-4">
           <ContentStructureMetricsContainer :reportData="reportData" />
         </div>
       </section>
+      <section v-else-if="!isLoading && !loadError" class="py-8 bg-white dark:bg-gray-900">
+        <div class="max-w-[1140px] mx-auto px-4">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center">
+            <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-6">Content Structure Metrics</h3>
+            <p class="text-gray-500 dark:text-gray-400">Loading content structure data...</p>
+          </div>
+        </div>
+      </section>
       
       <!-- Schema Implementation Section -->
-      <section class="py-8 bg-gray-50 dark:bg-gray-800">
+      <section v-if="reportData && reportData.clients && reportData.clients.length > 0" class="py-8 bg-gray-50 dark:bg-gray-800">
         <div class="max-w-[1140px] mx-auto px-4">
           <SchemaImplementationComponent :reportData="reportData" />
         </div>
       </section>
+      <section v-else-if="!isLoading && !loadError" class="py-8 bg-gray-50 dark:bg-gray-800">
+        <div class="max-w-[1140px] mx-auto px-4">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center">
+            <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-6">Schema Implementation</h3>
+            <p class="text-gray-500 dark:text-gray-400">Loading schema data...</p>
+          </div>
+        </div>
+      </section>
       
       <!-- Content Type Breakdown Section -->
-      <section class="py-8 bg-white dark:bg-gray-900">
+      <section v-if="reportData && reportData.clients && reportData.clients.length > 0" class="py-8 bg-white dark:bg-gray-900">
         <div class="max-w-[1140px] mx-auto px-4">
           <ContentTypeBreakdownComponent :reportData="reportData" />
         </div>
       </section>
+      <section v-else-if="!isLoading && !loadError" class="py-8 bg-white dark:bg-gray-900">
+        <div class="max-w-[1140px] mx-auto px-4">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center">
+            <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-6">Content Type Breakdown</h3>
+            <p class="text-gray-500 dark:text-gray-400">Loading content type data...</p>
+          </div>
+        </div>
+      </section>
 
        <!-- Content Quality Metrics Section (New) -->
-  <section class="py-8 bg-gray-50 dark:bg-gray-800">
+  <section v-if="reportData && reportData.clients && reportData.clients.length > 0" class="py-8 bg-gray-50 dark:bg-gray-800">
     <div class="max-w-[1140px] mx-auto px-4">
       <ContentQualityMetricsComponent :reportData="reportData" />
     </div>
   </section>
+  <section v-else-if="!isLoading && !loadError" class="py-8 bg-gray-50 dark:bg-gray-800">
+    <div class="max-w-[1140px] mx-auto px-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center">
+        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-6">Content Quality Metrics</h3>
+        <p class="text-gray-500 dark:text-gray-400">Loading content quality data...</p>
+      </div>
+    </div>
+  </section>
 
-    <!-- Rock Paper Scissors Section (New) -->
-    <section class="py-8 bg-white dark:bg-gray-900">
+  <!-- Rock Paper Scissors Section (New) -->
+  <section v-if="reportData && reportData.clients && reportData.clients.length > 0" class="py-8 bg-white dark:bg-gray-900">
     <div class="max-w-[1140px] mx-auto px-4">
       <RockPaperScissorsComponent :reportData="reportData" />
     </div>
   </section>
+  <section v-else-if="!isLoading && !loadError" class="py-8 bg-white dark:bg-gray-900">
+    <div class="max-w-[1140px] mx-auto px-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center">
+        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-6">Rock Paper Scissors Component</h3>
+        <p class="text-gray-500 dark:text-gray-400">Loading Rock Paper Scissors data...</p>
+      </div>
+    </div>
+  </section>
 
-   <!-- Our Next Study Section (New) -->
+   <!-- Our Next Study Section (New) - This isn't dependent on data so no conditional needed -->
    <section class="py-8 bg-gray-50 dark:bg-gray-800">
     <div class="max-w-[1140px] mx-auto px-4">
       <OurNextStudyComponent />
@@ -197,29 +275,16 @@ import OurNextStudyComponent from '@/components/labs/reports/OurNextStudyCompone
 import ContentStructureMetricsContainer from '@/components/labs/reports/ContentStructureMetricsContainer.vue';
 
 // Import Supabase utilities
-import { fetchJsonFromSignedUrl } from '~/utils/supabase/client';
-import { STORAGE_CONFIG, DEFAULT_SIGNED_URL } from '~/utils/supabase/config';
-import { handleSupabaseError, tryMultipleRetrievalMethods, sanitizeReportData } from '~/utils/supabase/errorHandler';
+import { getSupabaseClient } from '~/utils/supabase/client';
+import { STORAGE_CONFIG } from '~/utils/supabase/config';
 
-// Skip Supabase and rely only on fetch
-// Since we're having issues with both the Nuxt module and manual client
-// We'll focus on the signed URL and local file approach
-const supabase = null;
-
-// Get storage config from plugin
-const { $storageConfig } = useNuxtApp();
+// We don't need to store the Supabase client since we're using a singleton pattern
 
 
 definePageMeta({
   layout: 'custom', // Using a custom layout to avoid the default navigation
 });
 
-// Add a script for inline fallback data
-useHead({
-  script: [
-    { src: '/core-sample-inline-fallback.js' }
-  ]
-});
 
 // Add SEO metadata
 useSeoMeta({
@@ -239,18 +304,8 @@ const { createReportSchema, generateSchemaScript } = useReportSchema();
 // Check if we're in production environment
 const isProduction = computed(() => process.env.NODE_ENV === 'production');
 
-// State with default values to prevent undefined property access
-const reportData = ref({
-  timestamp: new Date().toISOString(), // Default timestamp
-  total_queries: 0,
-  total_pages: 0,
-  clients: [],
-  domains: [],
-  benchmarks: {
-    domainAuthority: 40,
-    pageAuthority: 35
-  }
-});
+// State with null initial value to prevent component rendering until data is loaded
+const reportData = ref(null);
 const isLoading = ref(true);
 const loadError = ref(null);
 
@@ -292,37 +347,55 @@ const config = useRuntimeConfig().public || {};
 // Check if storage config is available
 // No logging for security
 
-// Load report data - using server-side API endpoint
+// Load report data directly from Supabase Storage - no fallbacks
 const loadReportData = async () => {
   isLoading.value = true;
   loadError.value = null;
   
   try {
-    // Use the server API endpoint instead of direct Supabase access
-    // This keeps all Supabase keys and tokens server-side only
-    const response = await fetch('/api/core-sample', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache'
-      }
-    });
+    // Get the Supabase client using our singleton pattern
+    const supabase = getSupabaseClient();
     
-    // Handle unsuccessful responses
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.statusMessage || `Server responded with status ${response.status}`);
+    // Verify Supabase client is initialized
+    if (!supabase) {
+      throw new Error('Supabase client not initialized. Check environment variables.');
+    }
+
+    
+    // Get bucket and file path from config
+    const bucket = STORAGE_CONFIG.bucket;
+    const filePath = STORAGE_CONFIG.filePath;
+    
+    // Download the file directly from Supabase storage
+    const { data, error } = await supabase
+      .storage
+      .from(bucket)
+      .download(filePath);
+    
+    // Handle any errors from Supabase
+    if (error) {
+      throw new Error(`Supabase storage error: ${error.message}`);
     }
     
-    // Parse the JSON response
-    const data = await response.json();
+    if (!data) {
+      throw new Error('No data received from Supabase');
+    }
     
-    // Set the data to the reactive reference
-    reportData.value = data;
+    // Parse the JSON from the blob
+    const text = await data.text();
+    const jsonData = JSON.parse(text);
+    
+    // Set the data to the reactive reference after a small delay 
+    // to ensure components have time to finish their current render cycle
+    setTimeout(() => {
+      reportData.value = jsonData;
+      // Only set loading to false after data is available
+      isLoading.value = false;
+    }, 200);
+    
   } catch (error) {
-    // Handle all errors from the process without logging sensitive info
+    // Display the error to the user
     loadError.value = `Failed to load report data: ${error.message}`;
-  } finally {
     isLoading.value = false;
   }
 };

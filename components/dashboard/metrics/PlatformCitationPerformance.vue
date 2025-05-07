@@ -65,13 +65,13 @@
               
               <!-- Citation Match Score -->
               <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center text-center">
-                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.matchScore || 7.2 }}</p>
+                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.matchScore || '-' }}</p>
                 <p class="text-xs text-gray-500">Match Score</p>
               </div>
               
               <!-- Unique Content Score -->
               <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center text-center">
-                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.uniqueContentScore || 8.5 }}</p>
+                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.uniqueContentScore || '-' }}</p>
                 <p class="text-xs text-gray-500">Uniqueness</p>
               </div>
             </div>
@@ -116,25 +116,25 @@
             <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <!-- Content Depth -->
               <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center text-center">
-                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.avgDepth || 7.5 }}</p>
+                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.avgDepth || '-' }}</p>
                 <p class="text-xs text-gray-500">Avg Depth</p>
               </div>
               
               <!-- Content Optimization -->
               <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center text-center">
-                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.avgOptimization || 7.8 }}</p>
+                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.avgOptimization || '-' }}</p>
                 <p class="text-xs text-gray-500">Optimization</p>
               </div>
               
               <!-- HTML Structure -->
               <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center text-center">
-                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.avgHtmlStructure || 8.2 }}</p>
+                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.avgHtmlStructure || '-' }}</p>
                 <p class="text-xs text-gray-500">HTML Structure</p>
               </div>
               
               <!-- GPT Analysis -->
               <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center text-center">
-                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.avgGptAnalysis || 7.9 }}</p>
+                <p class="text-2xl font-bold text-darkNavy mb-1">{{ platform.avgGptAnalysis || '-' }}</p>
                 <p class="text-xs text-gray-500">GPT Analysis</p>
               </div>
             </div>
@@ -169,16 +169,14 @@ const platforms = ref([
     citationCount: 0,
     avgQuality: 0,
     totalCitations: 0,
-    matchScore: 0,
-    uniqueContentScore: 0,
-    avgDepth: 0,
-    avgOptimization: 0,
-    avgHtmlStructure: 0,
-    avgGptAnalysis: 0,
+    matchScore: null,
+    uniqueContentScore: null,
+    avgDepth: null,
+    avgOptimization: null,
+    avgHtmlStructure: null,
+    avgGptAnalysis: null,
     contentTypes: [
-      { type: 'Blog', percentage: 40 },
-      { type: 'Product', percentage: 35 },
-      { type: 'Documentation', percentage: 25 }
+      { type: 'No Data', percentage: 100 }
     ]
   },
   {
@@ -188,16 +186,14 @@ const platforms = ref([
     citationCount: 0,
     avgQuality: 0,
     totalCitations: 0,
-    matchScore: 0,
-    uniqueContentScore: 0,
-    avgDepth: 0,
-    avgOptimization: 0,
-    avgHtmlStructure: 0,
-    avgGptAnalysis: 0,
+    matchScore: null,
+    uniqueContentScore: null,
+    avgDepth: null,
+    avgOptimization: null,
+    avgHtmlStructure: null,
+    avgGptAnalysis: null,
     contentTypes: [
-      { type: 'Product', percentage: 45 },
-      { type: 'Blog', percentage: 30 },
-      { type: 'Documentation', percentage: 25 }
+      { type: 'No Data', percentage: 100 }
     ]
   }
 ]);
@@ -292,13 +288,15 @@ const analyzePlatformData = () => {
       citationCount: 0,
       avgQuality: 0,
       totalCitations: 0,
-      matchScore: 0,
-      uniqueContentScore: 0,
-      avgDepth: 0,
-      avgOptimization: 0,
-      avgHtmlStructure: 0,
-      avgGptAnalysis: 0,
-      contentTypes: []
+      matchScore: null,
+      uniqueContentScore: null,
+      avgDepth: null,
+      avgOptimization: null,
+      avgHtmlStructure: null,
+      avgGptAnalysis: null,
+      contentTypes: [
+        { type: 'No Data', percentage: 100 }
+      ]
     },
     {
       name: 'perplexity',
@@ -307,13 +305,15 @@ const analyzePlatformData = () => {
       citationCount: 0,
       avgQuality: 0,
       totalCitations: 0,
-      matchScore: 0,
-      uniqueContentScore: 0,
-      avgDepth: 0,
-      avgOptimization: 0,
-      avgHtmlStructure: 0,
-      avgGptAnalysis: 0,
-      contentTypes: []
+      matchScore: null,
+      uniqueContentScore: null,
+      avgDepth: null,
+      avgOptimization: null,
+      avgHtmlStructure: null,
+      avgGptAnalysis: null,
+      contentTypes: [
+        { type: 'No Data', percentage: 100 }
+      ]
     }
   ];
   
@@ -476,48 +476,48 @@ const analyzePlatformData = () => {
     if (matchScoreCount > 0) {
       platform.matchScore = Math.round((totalMatchScore / matchScoreCount) * 10) / 10;
     } else {
-      // Default values if no data
-      platform.matchScore = platform.name === 'chatgpt' ? 7.2 : 7.8;
+      // No data available
+      platform.matchScore = null;
     }
     
     // Calculate unique content score
     if (uniqueScoreCount > 0) {
       platform.uniqueContentScore = Math.round((totalUniqueScore / uniqueScoreCount) * 10) / 10;
     } else {
-      // Default values if no data
-      platform.uniqueContentScore = platform.name === 'chatgpt' ? 8.5 : 8.1;
+      // No data available
+      platform.uniqueContentScore = null;
     }
     
     // Calculate content depth score
     if (depthScoreCount > 0) {
       platform.avgDepth = Math.round((totalDepthScore / depthScoreCount) * 10) / 10;
     } else {
-      // Default values if no data
-      platform.avgDepth = platform.name === 'chatgpt' ? 7.5 : 7.3;
+      // No data available
+      platform.avgDepth = null;
     }
     
     // Calculate content optimization score
     if (optimizationScoreCount > 0) {
       platform.avgOptimization = Math.round((totalOptimizationScore / optimizationScoreCount) * 10) / 10;
     } else {
-      // Default values if no data
-      platform.avgOptimization = platform.name === 'chatgpt' ? 7.8 : 8.0;
+      // No data available
+      platform.avgOptimization = null;
     }
     
     // Calculate HTML structure score
     if (htmlStructureScoreCount > 0) {
       platform.avgHtmlStructure = Math.round((totalHtmlStructureScore / htmlStructureScoreCount) * 10) / 10;
     } else {
-      // Default values if no data
-      platform.avgHtmlStructure = platform.name === 'chatgpt' ? 8.2 : 8.4;
+      // No data available
+      platform.avgHtmlStructure = null;
     }
     
     // Calculate GPT analysis score
     if (gptAnalysisScoreCount > 0) {
       platform.avgGptAnalysis = Math.round((totalGptAnalysisScore / gptAnalysisScoreCount) * 10) / 10;
     } else {
-      // Default values if no data
-      platform.avgGptAnalysis = platform.name === 'chatgpt' ? 7.9 : 8.0;
+      // No data available
+      platform.avgGptAnalysis = null;
     }
     
     // Convert content types to percentage-based array
@@ -533,18 +533,10 @@ const analyzePlatformData = () => {
         .sort((a, b) => b.percentage - a.percentage)
         .slice(0, 3); // Take top 3
     } else {
-      // Default content types if none found
-      platform.contentTypes = platform.name === 'chatgpt' 
-        ? [
-            { type: 'Blog', percentage: 65 },
-            { type: 'Product', percentage: 25 },
-            { type: 'Documentation', percentage: 10 }
-          ]
-        : [
-            { type: 'Product', percentage: 55 },
-            { type: 'Blog', percentage: 25 },
-            { type: 'Documentation', percentage: 20 }
-          ];
+      // No content types data found, use empty array or minimal data representation
+      platform.contentTypes = [
+        { type: 'No Data', percentage: 100 }
+      ];
     }
     
     // Platform processed successfully

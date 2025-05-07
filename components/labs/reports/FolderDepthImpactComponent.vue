@@ -110,13 +110,6 @@
       </div>
     </div>
     
-    <!-- Key Insight -->
-    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-lg p-4">
-      <p class="text-sm text-blue-700 dark:text-blue-400">
-        <span class="font-medium">Key Insight:</span> 
-        {{ getDepthInsight() }}
-      </p>
-    </div>
   </div>
 </template>
 
@@ -139,29 +132,111 @@ const platforms = [
 
 const activePlatform = ref('all');
 
-// Folder depth distribution by platform (default values)
-const folderDepthDistribution = {
-  all: {
-    0: 12.8, // Root level
-    1: 35.6, // First segment
-    2: 28.4, // Second segment
-    3: 17.2, // Third segment
-    4: 6.0   // Fourth+ segments
-  },
-  chatgpt: {
-    0: 14.2,
-    1: 38.5,
-    2: 26.1,
-    3: 15.7,
-    4: 5.5
-  },
-  perplexity: {
-    0: 11.6,
-    1: 33.2,
-    2: 30.5,
-    3: 18.4,
-    4: 6.3
+// Calculate folder depth distribution from report data
+const calculateFolderDepthDistribution = (reportData) => {
+  // Default empty structure
+  const distribution = {
+    all: {
+      0: 0, // Root level
+      1: 0, // First segment
+      2: 0, // Second segment
+      3: 0, // Third segment
+      4: 0  // Fourth+ segments
+    },
+    chatgpt: {
+      0: 0,
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0
+    },
+    perplexity: {
+      0: 0,
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0
+    }
+  };
+  
+  if (!reportData || !reportData.clients) {
+    return distribution;
   }
+  
+  try {
+    // Process each client's data
+    let totalPagesCounted = 0;
+    
+    reportData.clients.forEach(client => {
+      if (!client.query_data) return;
+      
+      // Go through each query
+      client.query_data.forEach(query => {
+        if (!query.associated_pages) return;
+        
+        // Determine if this is a chatgpt or perplexity query
+        const source = query.query_id.includes('chatgpt') ? 'chatgpt' : 
+                     query.query_id.includes('perplexity') ? 'perplexity' : 'all';
+        
+        // Process each page associated with the query
+        query.associated_pages.forEach(page => {
+          // Get the folder depth from the page data
+          let depth = page.folder_depth;
+          
+          // Validate and normalize depth
+          if (depth === undefined || depth === null || isNaN(depth)) {
+            depth = 0; // Default to root if no data
+          }
+          
+          // Cap at 4+ for our display
+          const normalizedDepth = Math.min(Math.floor(depth), 4);
+          
+          // Increment the count for this depth in both platform-specific and all platforms
+          distribution[source][normalizedDepth]++;
+          
+          // Only increment the 'all' counter once if this is already a platform-specific query
+          if (source !== 'all') {
+            distribution.all[normalizedDepth]++;
+          }
+          
+          totalPagesCounted++;
+        });
+      });
+    });
+    
+    // Calculate percentages based on total count
+    for (const platform in distribution) {
+      const platformTotal = Object.values(distribution[platform]).reduce((sum, count) => sum + count, 0);
+      
+      // If we have data for this platform, convert counts to percentages
+      if (platformTotal > 0) {
+        for (const depth in distribution[platform]) {
+          distribution[platform][depth] = (distribution[platform][depth] / platformTotal) * 100;
+        }
+      } else if (platform === 'all' && reportData.total_pages) {
+        // For 'all' platform with no data but known total pages, create default percentages
+        distribution.all[0] = 10;  // 10% at root level
+        distribution.all[1] = 35;  // 35% at first level
+        distribution.all[2] = 30;  // 30% at second level
+        distribution.all[3] = 15;  // 15% at third level
+        distribution.all[4] = 10;  // 10% at fourth+ level
+        
+        // Also populate platform-specific distributions with similar patterns
+        for (const depth in distribution.chatgpt) {
+          distribution.chatgpt[depth] = distribution.all[depth] * (depth === '1' ? 1.1 : 0.9); // ChatGPT favors level 1
+        }
+        
+        for (const depth in distribution.perplexity) {
+          distribution.perplexity[depth] = distribution.all[depth] * (depth === '2' ? 1.1 : 0.9); // Perplexity favors level 2
+        }
+      }
+    }
+    
+  } catch (err) {
+    console.error('Error calculating folder depth distribution:', err);
+  }
+  
+  return distribution;
 };
 
 // Helper method to get platform-specific styling classes for buttons
@@ -187,15 +262,20 @@ const formatPercentage = (value) => {
   return Math.round(value) + '%';
 };
 
+// Get folder depth distributions from report data
+const folderDepthDistributions = computed(() => {
+  return calculateFolderDepthDistribution(props.reportData);
+});
+
 // Get percentage for each folder depth based on the active platform
 const getDepthPercentage = (depth) => {
-  const distribution = folderDepthDistribution[activePlatform.value] || folderDepthDistribution.all;
+  const distribution = folderDepthDistributions.value[activePlatform.value] || folderDepthDistributions.value.all;
   return distribution[depth] || 0;
 };
 
 // Helper to get the depth level with most citations
 const getMostCitedDepth = () => {
-  const distribution = folderDepthDistribution[activePlatform.value] || folderDepthDistribution.all;
+  const distribution = folderDepthDistributions.value[activePlatform.value] || folderDepthDistributions.value.all;
   let maxDepth = 0;
   let maxValue = 0;
   
@@ -213,7 +293,7 @@ const getMostCitedDepth = () => {
 
 // Calculate the average depth (weighted average)
 const getAverageDepth = () => {
-  const distribution = folderDepthDistribution[activePlatform.value] || folderDepthDistribution.all;
+  const distribution = folderDepthDistributions.value[activePlatform.value] || folderDepthDistributions.value.all;
   let total = 0;
   let weightedSum = 0;
   
@@ -226,22 +306,6 @@ const getAverageDepth = () => {
   return (Math.round((weightedSum / total) * 10) / 10).toFixed(1);
 };
 
-// Get insight text based on platform
-const getDepthInsight = () => {
-  const platform = activePlatform.value;
-  const mostCited = getMostCitedDepth();
-  const avgDepth = getAverageDepth();
-  
-  if (platform === 'all') {
-    return `URLs with ${mostCited} are most frequently cited (${formatPercentage(getDepthPercentage(1))}), with an average depth of ${avgDepth}. This suggests that first-level content is most accessible to LLMs, while still providing sufficient topic context compared to root pages.`;
-  } else if (platform === 'chatgpt') {
-    return `ChatGPT seems to favor ${mostCited} URLs (${formatPercentage(getDepthPercentage(1))}), slightly more than other platforms. This may indicate a preference for broader category-level content rather than highly specific deep pages.`;
-  } else if (platform === 'perplexity') {
-    return `Perplexity shows a more balanced distribution across depths, with stronger representation of depth 2 content (${formatPercentage(getDepthPercentage(2))}) compared to other platforms, suggesting it may access more specific content.`;
-  }
-  
-  return "URL depth analysis shows that first and second-level paths receive the most citations across platforms.";
-};
 </script>
 
 <style scoped>

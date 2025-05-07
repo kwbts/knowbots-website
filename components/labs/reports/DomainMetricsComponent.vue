@@ -245,35 +245,10 @@
     };
   };
   
-  // Compute metrics from report data dynamically
+  // Compute metrics from report data dynamically - no fallbacks
   const metrics = computed(() => {
-    // First try to get metrics from the actual report data
-    const calculatedMetrics = calculateDomainMetrics(props.reportData);
-    
-    // If we have no data yet, use a fallback from the sample data we know exists
-    if (calculatedMetrics.domainAuthority.avg === 0 && calculatedMetrics.pageAuthority.avg === 0) {
-      // Use the sample data that we've analyzed
-      return {
-        domainAuthority: {
-          avg: 56.8,
-          median: 60,
-          min: 44,
-          max: 60
-        },
-        pageAuthority: {
-          avg: 49.8,
-          median: 50,
-          min: 49,
-          max: 50
-        },
-        benchmarks: {
-          domainAuthority: 40,
-          pageAuthority: 35
-        }
-      };
-    }
-    
-    return calculatedMetrics;
+    // Only use the calculated metrics from the data, no fallbacks
+    return calculateDomainMetrics(props.reportData);
   });
   
   // Calculate stroke-dashoffset for gauge chart (scales to max value)

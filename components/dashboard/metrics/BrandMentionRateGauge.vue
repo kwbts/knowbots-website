@@ -168,7 +168,7 @@
     <div v-if="activeCompetitor && activeCompetitor !== 'all' && getActiveCompetitorDetails()" class="mt-4 bg-green-50 p-3 rounded-lg border border-green-200">
       <h5 class="font-medium text-green-800 mb-1">Quick Win Opportunity</h5>
       <p class="text-sm text-green-700">
-        Increase mentions by {{ getActiveCompetitorDetails()?.optimizationPercentage || 0 }}% with focused optimization on {{ getActiveCompetitorDetails()?.keyQueries || 0 }} key query clusters.
+        Increase mentions by {{ getActiveCompetitorDetails()?.optimizationPercentage || '-' }}% with focused optimization on {{ getActiveCompetitorDetails()?.keyQueries || '-' }} key query clusters.
       </p>
     </div>
   </div>
@@ -193,18 +193,18 @@ const brandName = computed(() => {
   if (props.clientData && props.clientData.client_name) {
     return props.clientData.client_name;
   }
-  return 'Your Brand';
+  return 'No Brand Data';
 });
 
 // Helper function to calculate the mention rate for any entity
 const calculateMentionRate = (entityName, isClient = false) => {
   if (!props.clientData || !props.clientData.query_data) {
-    return 0;
+    return null;
   }
   
   // Count total queries
   const totalQueries = props.clientData.query_data.length;
-  if (totalQueries === 0) return 0;
+  if (totalQueries === 0) return null;
   
   // Count queries where the entity is mentioned
   const mentionedQueries = props.clientData.query_data.filter(query => {
@@ -384,7 +384,7 @@ const calculateStrokeDashOffset = (percentage) => {
 
 // Format percentage value
 const formatPercentage = (value) => {
-  if (value === undefined || value === null) return '0%';
+  if (value === undefined || value === null) return 'N/A';
   return Math.round(value) + '%';
 };
 
@@ -410,14 +410,14 @@ const getBrandRate = () => {
 const getCompetitorRate = () => {
   if (activeCompetitor.value === 'all') {
     // Calculate average rate across all competitors
-    if (allCompetitors.value.length === 0) return 0;
+    if (allCompetitors.value.length === 0) return null;
     
     const sum = allCompetitors.value.reduce((total, comp) => total + comp.rate, 0);
     return sum / allCompetitors.value.length;
   } else {
     // Get rate for active competitor
     const competitor = getActiveCompetitorDetails();
-    return competitor ? competitor.rate : 0;
+    return competitor ? competitor.rate : null;
   }
 };
 
@@ -425,6 +425,12 @@ const getCompetitorRate = () => {
 const getAdvantageRate = () => {
   const brandRate = getBrandRate();
   const competitorRate = getCompetitorRate();
+  
+  // Return null if either rate is missing
+  if (brandRate === null || competitorRate === null) {
+    return null;
+  }
+  
   return brandRate - competitorRate; // Allow negative values to show disadvantage
 };
 

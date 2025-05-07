@@ -676,42 +676,42 @@ const truncateText = (text, maxLength) => {
 // Content metrics helper functions
 const getContentOptimizationScore = () => {
   if (!activePage.value) return 0;
-  return activePage.value.content_optimization_score || 7;
+  return activePage.value.content_optimization_score || null;
 };
 
 const getContentUniquenessScore = () => {
   if (!activePage.value) return 0;
-  return activePage.value.content_uniqueness || 6;
+  return activePage.value.content_uniqueness || null;
 };
 
 const getContentDepthScore = () => {
   if (!activePage.value) return 0;
-  return activePage.value.content_depth_score || 7;
+  return activePage.value.content_depth_score || null;
 };
 
 const getReadabilityScore = () => {
   if (!activePage.value) return 0;
-  return activePage.value.readability_score || 7;
+  return activePage.value.readability_score || null;
 };
 
 const getWordCount = () => {
   if (!activePage.value) return 0;
-  return activePage.value.word_count || 2500;
+  return activePage.value.word_count || null;
 };
 
 const getImageCount = () => {
   if (!activePage.value) return 0;
-  return activePage.value.image_count || 5;
+  return activePage.value.image_count || null;
 };
 
 const getUnorderedListCount = () => {
   if (!activePage.value) return 0;
-  return activePage.value.has_unordered_list_count || 4;
+  return activePage.value.has_unordered_list_count || null;
 };
 
 const getOrderedListCount = () => {
   if (!activePage.value) return 0;
-  return activePage.value.has_ordered_list_count || 2;
+  return activePage.value.has_ordered_list_count || null;
 };
 
 const getTotalListCount = () => {
@@ -720,22 +720,22 @@ const getTotalListCount = () => {
 
 const getTableCount = () => {
   if (!activePage.value) return 0;
-  return activePage.value.has_table_count || 1;
+  return activePage.value.has_table_count || null;
 };
 
 const getHTMLStructureScore = () => {
   if (!activePage.value) return 0;
-  return activePage.value.html_structure_score || 8;
+  return activePage.value.html_structure_score || null;
 };
 
 const getAccessibilityScore = () => {
   if (!activePage.value) return 0;
-  return activePage.value.accessibility_score || 7;
+  return activePage.value.accessibility_score || null;
 };
 
 const getPageSpeedScore = () => {
   if (!activePage.value) return 0;
-  return activePage.value.page_speed_score || 85;
+  return activePage.value.page_speed_score || null;
 };
 
 // Get the analysis notes from the active page

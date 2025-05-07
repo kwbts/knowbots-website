@@ -1,8 +1,12 @@
 <template>
   <div>
-    <TopNavigation v-if="!isCustomLayoutPage"/>
-    <NuxtPage />
-    <Footer v-if="!isCustomLayoutPage" />
+    <NuxtLayout :name="isCustomLayoutPage ? 'custom' : 'default'">
+      <template #default>
+        <TopNavigation v-if="!isCustomLayoutPage"/>
+        <NuxtPage />
+        <Footer v-if="!isCustomLayoutPage" />
+      </template>
+    </NuxtLayout>
   </div>
 </template>
 

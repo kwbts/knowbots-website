@@ -164,20 +164,46 @@ const countAllQueries = () => {
   return props.reportData.total_queries || 0;
 };
 
-// Get an estimate of ChatGPT queries (around 45% of total if not available in data)
+// Get actual count of ChatGPT queries from data
 const getChatGPTCount = () => {
-  if (!props.reportData || !props.reportData.total_queries) return 0;
-  // In a real implementation, we would filter by platform
-  // For this demo, we'll use a percentage of the total
-  return Math.round(props.reportData.total_queries * 0.45);
+  if (!props.reportData || !props.reportData.clients) return 0;
+  
+  let count = 0;
+  // Count queries specifically from ChatGPT
+  props.reportData.clients.forEach(client => {
+    if (client.query_data) {
+      client.query_data.forEach(query => {
+        if (query.query_metrics && 
+            query.query_metrics.data_source && 
+            query.query_metrics.data_source.toLowerCase() === 'chatgpt') {
+          count++;
+        }
+      });
+    }
+  });
+  
+  return count;
 };
 
-// Get an estimate of Perplexity queries (around 55% of total if not available in data)
+// Get actual count of Perplexity queries from data
 const getPerplexityCount = () => {
-  if (!props.reportData || !props.reportData.total_queries) return 0;
-  // In a real implementation, we would filter by platform
-  // For this demo, we'll use a percentage of the total
-  return Math.round(props.reportData.total_queries * 0.55);
+  if (!props.reportData || !props.reportData.clients) return 0;
+  
+  let count = 0;
+  // Count queries specifically from Perplexity
+  props.reportData.clients.forEach(client => {
+    if (client.query_data) {
+      client.query_data.forEach(query => {
+        if (query.query_metrics && 
+            query.query_metrics.data_source && 
+            query.query_metrics.data_source.toLowerCase() === 'perplexity') {
+          count++;
+        }
+      });
+    }
+  });
+  
+  return count;
 };
 
 // Calculate ChatGPT percentage of total

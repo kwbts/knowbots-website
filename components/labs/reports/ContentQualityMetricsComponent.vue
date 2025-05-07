@@ -264,27 +264,7 @@
   
   const activePlatform = ref('all');
   
-  // Content quality metrics by platform
-  const metricsData = {
-    all: {
-      contentDepth: 6.88,
-      citationMatch: 7.63,
-      contentUniqueness: 6.35,
-      readability: 6.89
-    },
-    chatgpt: {
-      contentDepth: 6.71,
-      citationMatch: 7.42,
-      contentUniqueness: 6.25,
-      readability: 7.05
-    },
-    perplexity: {
-      contentDepth: 7.02,
-      citationMatch: 7.81,
-      contentUniqueness: 6.43,
-      readability: 6.76
-    }
-  };
+  // No fallback data needed - rely entirely on API response
   
   // Helper method to get platform-specific styling classes for buttons
   const getPlatformButtonClass = (platform) => {
@@ -311,7 +291,12 @@
   // Calculate metrics from the report data
   const calculateMetrics = () => {
     if (!props.reportData || !props.reportData.clients) {
-      return metricsData.all;
+      return {
+        contentDepth: 0,
+        citationMatch: 0,
+        contentUniqueness: 0,
+        readability: 0
+      };
     }
     
     const allPages = [];
@@ -375,12 +360,12 @@
       }
     });
     
-    // Calculate averages, defaulting to fallback data if no valid metrics found
+    // Calculate averages directly from data - no fallbacks
     return {
-      contentDepth: countDepth > 0 ? contentDepthTotal / countDepth : metricsData[activePlatform.value].contentDepth,
-      citationMatch: countCitation > 0 ? citationMatchTotal / countCitation : metricsData[activePlatform.value].citationMatch,
-      contentUniqueness: countUniqueness > 0 ? contentUniquenessTotal / countUniqueness : metricsData[activePlatform.value].contentUniqueness,
-      readability: countReadability > 0 ? readabilityTotal / countReadability : metricsData[activePlatform.value].readability
+      contentDepth: countDepth > 0 ? contentDepthTotal / countDepth : 0,
+      citationMatch: countCitation > 0 ? citationMatchTotal / countCitation : 0,
+      contentUniqueness: countUniqueness > 0 ? contentUniquenessTotal / countUniqueness : 0,
+      readability: countReadability > 0 ? readabilityTotal / countReadability : 0
     };
   };
   

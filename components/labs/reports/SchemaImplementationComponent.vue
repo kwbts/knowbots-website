@@ -185,32 +185,14 @@
     };
   };
   
-  // Compute metrics from report data
+  // Compute metrics directly from report data - no fallbacks
   const metrics = computed(() => {
     const calculated = calculateSchemaImplementation(props.reportData);
     
-    // If we have no data (empty or loading), use sample data as fallback
-    if (calculated.totalPages === 0) {
-      return {
-        percentage: 100,
-        schemaTypes: [
-          { type: "BreadcrumbList", count: 4, percentage: 80 },
-          { type: "Organization", count: 4, percentage: 80 },
-          { type: "WebPage", count: 4, percentage: 80 },
-          { type: "WebSite", count: 4, percentage: 80 },
-          { type: "SiteNavigationElement", count: 4, percentage: 80 },
-          { type: "Blog", count: 1, percentage: 20 }
-        ],
-        pagesWithSchema: 5,
-        totalPages: 5,
-        industryAverage: 20 // Industry average estimate
-      };
-    }
-    
-    // Add industry average to the calculated metrics
+    // Add industry average to the calculated metrics, but don't use fallback data
     return {
       ...calculated,
-      industryAverage: 20 // Industry average estimate
+      industryAverage: 20 // Industry standard benchmark
     };
   });
   

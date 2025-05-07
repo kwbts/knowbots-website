@@ -22,7 +22,10 @@ export default defineNuxtConfig({
     },
     cookieOptions: {
       secure: process.env.NODE_ENV === 'production'
-    }
+    },
+    // Explicitly define URL and key for module
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_KEY
   },
   
   // Environment variables - public ones will be exposed to the client
@@ -34,8 +37,11 @@ export default defineNuxtConfig({
     
     // Public variables (accessible on client-side)
     public: {
-      // Supabase configuration
-      supabaseSignedUrl: process.env.SUPABASE_SIGNED_URL, // Legacy - can be removed once API is working
+      // Supabase configuration for client-side
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseKey: process.env.SUPABASE_KEY,
+      
+      // Storage configuration
       storageBucket: process.env.STORAGE_BUCKET || 'may-core-sample',
       targetFile: process.env.TARGET_FILE || 'core-sample-may-2025.json',
     }

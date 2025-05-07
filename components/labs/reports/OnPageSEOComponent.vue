@@ -280,21 +280,8 @@ const calculateOnPageSEOMetrics = (reportData) => {
 
 // Compute metrics with report data
 const metrics = computed(() => {
-  const calculated = calculateOnPageSEOMetrics(props.reportData);
-  
-  // If we have no data (empty or loading), use sample data as fallback
-  if (calculated.totalPages === 0) {
-    return {
-      mobileFriendly: { percentage: 96.2 },
-      ssl: { percentage: 98.7 },
-      semanticHTML: { percentage: 87.5 },
-      cdn: { percentage: 72.8 },
-      hrefLang: { percentage: 14.3 },
-      totalPages: 5
-    };
-  }
-  
-  return calculated;
+  // Only use data calculated from the report, no fallbacks
+  return calculateOnPageSEOMetrics(props.reportData);
 });
 
 // Helper formatting functions

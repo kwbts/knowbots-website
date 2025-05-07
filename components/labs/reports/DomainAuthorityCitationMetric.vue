@@ -87,13 +87,6 @@
           </div>
         </div>
         
-        <!-- Key Insight -->
-        <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-lg p-4">
-          <p class="text-sm text-blue-700 dark:text-blue-400">
-            <span class="font-medium">Key Insight:</span> 
-            {{ getCitationInsight() }}
-          </p>
-        </div>
       </div>
       
       <!-- Right Column: Citation Distribution by DA Score -->
@@ -169,14 +162,14 @@
           <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 rounded-lg p-3 text-center">
             <div class="text-sm text-gray-500 dark:text-gray-400">Median DA of Citations</div>
             <div class="text-xl font-semibold text-gray-800 dark:text-gray-200 mt-1">
-              {{ Math.round(citationMetrics[activePlatform].median * 10) / 10 }}
+              {{ displayMedianDA() }}
             </div>
           </div>
           
           <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/50 rounded-lg p-3 text-center">
             <div class="text-sm text-gray-500 dark:text-gray-400">Mode DA Range</div>
             <div class="text-xl font-semibold text-gray-800 dark:text-gray-200 mt-1">
-              {{ citationMetrics[activePlatform].modeRange }}
+              {{ displayModeRange() }}
             </div>
           </div>
           
@@ -193,7 +186,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import TextBox from './TextBox.vue';
 
 const props = defineProps({
@@ -210,48 +203,237 @@ const platforms = [
   { value: 'perplexity', label: 'Perplexity' }
 ];
 
+// Make sure activePlatform is properly initialized as a string
 const activePlatform = ref('all');
 
-// Citation distribution by DA range
-// This would normally be calculated from the actual data
-// Here we're providing sample data for visualization
-const domainAuthorityCitations = {
-  all: {
-    '1-25': 6.5,
-    '26-50': 28.7,
-    '51-75': 42.3,
-    '76-100': 22.5
-  },
-  chatgpt: {
-    '1-25': 4.2,
-    '26-50': 26.8,
-    '51-75': 45.9,
-    '76-100': 23.1
-  },
-  perplexity: {
-    '1-25': 8.4,
-    '26-50': 30.5,
-    '51-75': 39.6,
-    '76-100': 21.5
+// Calculate domain authority citation metrics from reportData
+const calculateDomainAuthorityCitations = (reportData) => {
+  // Initialize empty structure
+  const empty = {
+    all: { '1-25': 0, '26-50': 0, '51-75': 0, '76-100': 0 },
+    chatgpt: { '1-25': 0, '26-50': 0, '51-75': 0, '76-100': 0 },
+    perplexity: { '1-25': 0, '26-50': 0, '51-75': 0, '76-100': 0 }
+  };
+  
+  // Return empty data if the report data is missing
+  if (!reportData || !reportData.clients) {
+    return empty;
+  }
+  
+  try {
+    // Initialize counters for each platform and DA range
+    const results = {
+      all: { '1-25': 0, '26-50': 0, '51-75': 0, '76-100': 0, total: 0 },
+      chatgpt: { '1-25': 0, '26-50': 0, '51-75': 0, '76-100': 0, total: 0 },
+      perplexity: { '1-25': 0, '26-50': 0, '51-75': 0, '76-100': 0, total: 0 }
+    };
+    
+    // Iterate through all clients and their queries/pages
+    reportData.clients.forEach(client => {
+      if (client.query_data) {
+        client.query_data.forEach(query => {
+          if (query.associated_pages) {
+            query.associated_pages.forEach(page => {
+              // Skip pages without domain authority
+              if (!page.domain_authority) return;
+              
+              // Get platform from page data or query
+              let platform = 'unknown';
+              if (page.data_source) {
+                platform = page.data_source.toLowerCase();
+              } else if (query.query_metrics && query.query_metrics.data_source) {
+                platform = query.query_metrics.data_source.toLowerCase();
+              }
+              
+              // Determine which range this domain authority falls into
+              let daRange;
+              const da = parseFloat(page.domain_authority);
+              if (da <= 25) daRange = '1-25';
+              else if (da <= 50) daRange = '26-50';
+              else if (da <= 75) daRange = '51-75';
+              else daRange = '76-100';
+              
+              // Count for "all" platforms
+              results.all[daRange]++;
+              results.all.total++;
+              
+              // Count for specific platforms
+              if (platform === 'chatgpt') {
+                results.chatgpt[daRange]++;
+                results.chatgpt.total++;
+              } else if (platform === 'perplexity') {
+                results.perplexity[daRange]++;
+                results.perplexity.total++;
+              }
+            });
+          }
+        });
+      }
+    });
+    
+    // Convert counts to percentages
+    const percentages = {
+      all: { 
+        '1-25': results.all.total > 0 ? (results.all['1-25'] / results.all.total) * 100 : 0,
+        '26-50': results.all.total > 0 ? (results.all['26-50'] / results.all.total) * 100 : 0,
+        '51-75': results.all.total > 0 ? (results.all['51-75'] / results.all.total) * 100 : 0,
+        '76-100': results.all.total > 0 ? (results.all['76-100'] / results.all.total) * 100 : 0
+      },
+      chatgpt: {
+        '1-25': results.chatgpt.total > 0 ? (results.chatgpt['1-25'] / results.chatgpt.total) * 100 : 0,
+        '26-50': results.chatgpt.total > 0 ? (results.chatgpt['26-50'] / results.chatgpt.total) * 100 : 0,
+        '51-75': results.chatgpt.total > 0 ? (results.chatgpt['51-75'] / results.chatgpt.total) * 100 : 0,
+        '76-100': results.chatgpt.total > 0 ? (results.chatgpt['76-100'] / results.chatgpt.total) * 100 : 0
+      },
+      perplexity: {
+        '1-25': results.perplexity.total > 0 ? (results.perplexity['1-25'] / results.perplexity.total) * 100 : 0,
+        '26-50': results.perplexity.total > 0 ? (results.perplexity['26-50'] / results.perplexity.total) * 100 : 0,
+        '51-75': results.perplexity.total > 0 ? (results.perplexity['51-75'] / results.perplexity.total) * 100 : 0,
+        '76-100': results.perplexity.total > 0 ? (results.perplexity['76-100'] / results.perplexity.total) * 100 : 0
+      }
+    };
+    
+    return percentages;
+  } catch (error) {
+    console.error('Error calculating domain authority citations:', error);
+    return empty;
   }
 };
 
-// Citation metrics by platform
-const citationMetrics = {
-  all: {
-    median: 62.8,
-    modeRange: '60-70',
-    highAuthority: 64.8 // 51-100 combined
-  },
-  chatgpt: {
-    median: 66.3,
-    modeRange: '65-75',
-    highAuthority: 69.0
-  },
-  perplexity: {
-    median: 59.2,
-    modeRange: '55-65',
-    highAuthority: 61.1
+// Citation metrics calculation function
+const calculateCitationMetrics = (reportData) => {
+  // Initialize empty structure
+  const empty = {
+    all: { median: 0, modeRange: '51-75', highAuthority: 0 },
+    chatgpt: { median: 0, modeRange: '51-75', highAuthority: 0 },
+    perplexity: { median: 0, modeRange: '51-75', highAuthority: 0 }
+  };
+  
+  // Return empty data if the report data is missing
+  if (!reportData || !reportData.clients) {
+    return empty;
+  }
+  
+  try {
+    // Get domain authorities for each platform
+    const daValues = {
+      all: [],
+      chatgpt: [],
+      perplexity: []
+    };
+    
+    // Iterate through all clients and their queries/pages
+    reportData.clients.forEach(client => {
+      if (client.query_data) {
+        client.query_data.forEach(query => {
+          if (query.associated_pages) {
+            query.associated_pages.forEach(page => {
+              // Skip pages without domain authority
+              if (!page.domain_authority) return;
+              
+              const da = parseFloat(page.domain_authority);
+              
+              // Get platform from page data or query
+              let platform = 'unknown';
+              if (page.data_source) {
+                platform = page.data_source.toLowerCase();
+              } else if (query.query_metrics && query.query_metrics.data_source) {
+                platform = query.query_metrics.data_source.toLowerCase();
+              }
+              
+              // Add to all platforms
+              daValues.all.push(da);
+              
+              // Add to specific platform arrays
+              if (platform === 'chatgpt') {
+                daValues.chatgpt.push(da);
+              } else if (platform === 'perplexity') {
+                daValues.perplexity.push(da);
+              }
+            });
+          }
+        });
+      }
+    });
+    
+    // Calculate median for each platform
+    const calculateMedian = (values) => {
+      if (values.length === 0) return null;
+      
+      const sorted = [...values].sort((a, b) => a - b);
+      const middle = Math.floor(sorted.length / 2);
+      
+      if (sorted.length % 2 === 0) {
+        return (sorted[middle - 1] + sorted[middle]) / 2;
+      } else {
+        return sorted[middle];
+      }
+    };
+    
+    // Get mode range for each platform
+    const getModeRange = (values) => {
+      if (values.length === 0) return null;
+      
+      // Count occurrences in each range
+      const ranges = {
+        '1-25': 0,
+        '26-50': 0,
+        '51-75': 0,
+        '76-100': 0
+      };
+      
+      values.forEach(da => {
+        if (da <= 25) ranges['1-25']++;
+        else if (da <= 50) ranges['26-50']++;
+        else if (da <= 75) ranges['51-75']++;
+        else ranges['76-100']++;
+      });
+      
+      // Find the mode range
+      let modeRange = '1-25';
+      let maxCount = ranges['1-25'];
+      
+      Object.entries(ranges).forEach(([range, count]) => {
+        if (count > maxCount) {
+          maxCount = count;
+          modeRange = range;
+        }
+      });
+      
+      return modeRange;
+    };
+    
+    // Calculate high authority percentage (DA > 50)
+    const getHighAuthorityPercentage = (values) => {
+      if (values.length === 0) return null;
+      
+      const highAuthCount = values.filter(da => da > 50).length;
+      return (highAuthCount / values.length) * 100;
+    };
+    
+    // Compile the metrics for each platform
+    const metrics = {
+      all: {
+        median: calculateMedian(daValues.all),
+        modeRange: getModeRange(daValues.all),
+        highAuthority: getHighAuthorityPercentage(daValues.all)
+      },
+      chatgpt: {
+        median: calculateMedian(daValues.chatgpt),
+        modeRange: getModeRange(daValues.chatgpt),
+        highAuthority: getHighAuthorityPercentage(daValues.chatgpt)
+      },
+      perplexity: {
+        median: calculateMedian(daValues.perplexity),
+        modeRange: getModeRange(daValues.perplexity),
+        highAuthority: getHighAuthorityPercentage(daValues.perplexity)
+      }
+    };
+    
+    return metrics;
+  } catch (error) {
+    console.error('Error calculating citation metrics:', error);
+    return empty;
   }
 };
 
@@ -285,7 +467,9 @@ const getDACellClass = (score) => {
 
 // Helper method to get platform-specific styling classes for buttons
 const getPlatformButtonClass = (platform) => {
-  if (activePlatform.value === platform) {
+  const currentPlatform = activePlatform.value || 'all';
+  
+  if (currentPlatform === platform) {
     switch(platform) {
       case 'all':
         return 'bg-gradient-to-r from-burntOrangeDark to-jasperOrange text-white';
@@ -302,6 +486,8 @@ const getPlatformButtonClass = (platform) => {
 
 // Helper method to get platform-specific styling classes for indicator dots
 const getPlatformDotClass = (platform) => {
+  const currentPlatform = activePlatform.value || 'all';
+  
   switch(platform) {
     case 'all':
       return 'bg-burntOrangeDark';
@@ -314,18 +500,82 @@ const getPlatformDotClass = (platform) => {
   }
 };
 
+// Get domain authority citations from report data
+const domainAuthorityCitations = computed(() => {
+  // Default initialized structure to avoid undefined errors
+  const defaultCitations = {
+    all: { '1-25': null, '26-50': null, '51-75': null, '76-100': null },
+    chatgpt: { '1-25': null, '26-50': null, '51-75': null, '76-100': null },
+    perplexity: { '1-25': null, '26-50': null, '51-75': null, '76-100': null }
+  };
+  
+  // Return either the calculated citations or the default if calculation fails
+  const calculated = calculateDomainAuthorityCitations(props.reportData);
+  
+  // Ensure calculated has all platforms
+  if (!calculated) return defaultCitations;
+  
+  // Combine defaults with any calculated values to ensure structure is complete
+  return {
+    all: { ...defaultCitations.all, ...calculated.all },
+    chatgpt: { ...defaultCitations.chatgpt, ...calculated.chatgpt },
+    perplexity: { ...defaultCitations.perplexity, ...calculated.perplexity }
+  };
+});
+
+// Get citation metrics from report data
+const citationMetrics = computed(() => {
+  // Default initialized structure to avoid undefined errors
+  const defaultMetrics = {
+    all: { median: null, modeRange: null, highAuthority: null },
+    chatgpt: { median: null, modeRange: null, highAuthority: null },
+    perplexity: { median: null, modeRange: null, highAuthority: null }
+  };
+  
+  // Return either the calculated metrics or the default if calculation fails
+  const calculated = calculateCitationMetrics(props.reportData);
+  
+  // Ensure calculated has all platforms
+  if (!calculated) return defaultMetrics;
+  
+  // Combine defaults with any calculated values to ensure structure is complete
+  return {
+    all: { ...defaultMetrics.all, ...calculated.all },
+    chatgpt: { ...defaultMetrics.chatgpt, ...calculated.chatgpt },
+    perplexity: { ...defaultMetrics.perplexity, ...calculated.perplexity }
+  };
+});
+
 // Helper for getting combined ranges
 const getDAPercentage = (range) => {
-  const distribution = domainAuthorityCitations[activePlatform.value] || domainAuthorityCitations.all;
-  
-  // If it's a single range
-  if (distribution[range]) {
-    return distribution[range];
-  }
-  
-  // Handle combined ranges (e.g., "51-100")
-  if (range === '51-100') {
-    return (distribution['51-75'] || 0) + (distribution['76-100'] || 0);
+  try {
+    // Get active platform from ref
+    const currentPlatform = activePlatform.value || 'all';
+    
+    // Safely check if we have the required data
+    if (!domainAuthorityCitations.value) {
+      return 0;
+    }
+    
+    if (!domainAuthorityCitations.value[currentPlatform]) {
+      return 0;
+    }
+    
+    const distribution = domainAuthorityCitations.value[currentPlatform];
+    
+    // If it's a single range
+    if (distribution && distribution[range] !== undefined) {
+      return distribution[range] || 0;
+    }
+    
+    // Handle combined ranges (e.g., "51-100")
+    if (range === '51-100' && distribution) {
+      const range1 = distribution['51-75'] || 0;
+      const range2 = distribution['76-100'] || 0;
+      return range1 + range2;
+    }
+  } catch (error) {
+    console.error('Error in getDAPercentage:', error);
   }
   
   return 0;
@@ -333,43 +583,80 @@ const getDAPercentage = (range) => {
 
 // Format percentage value
 const formatPercentage = (value) => {
-  if (value === undefined || value === null) return '0%';
+  if (value === undefined || value === null || isNaN(value)) return '0%';
   return Math.round(value) + '%';
 };
 
 // Get insight text based on platform
 const getCitationInsight = () => {
-  const platform = activePlatform.value;
-  
-  if (platform === 'all') {
-    return "LLMs predominantly cite domains with higher authority scores. Our analysis shows that " +
-           formatPercentage(getDAPercentage('51-100')) + " of citations come from domains with DA scores above 50, " +
-           "suggesting that established, trustworthy domains are more likely to be referenced.";
-  } else if (platform === 'chatgpt') {
-    return "ChatGPT shows a strong preference for high-authority domains. " +
-           formatPercentage(getDAPercentage('51-75')) + " of all citations come from domains with DA scores between 51-75, " +
-           "indicating a bias toward well-established but not necessarily dominant sites.";
-  } else if (platform === 'perplexity') {
-    return "Perplexity AI includes a more balanced distribution of domain authorities, with " +
-           formatPercentage(getDAPercentage('26-50')) + " of citations from mid-range authorities. " +
-           "This suggests a slightly broader source selection compared to other LLMs.";
+  try {
+    // Get the current platform from the ref
+    const currentPlatform = activePlatform.value || 'all';
+    
+    if (!domainAuthorityCitations.value || !domainAuthorityCitations.value[currentPlatform]) {
+      return "Analysis of citation patterns by domain authority is currently being processed.";
+    }
+    
+    if (currentPlatform === 'all') {
+      const highAuthorityPct = getDAPercentage('51-100');
+      return "LLMs predominantly cite domains with higher authority scores. Our analysis shows that " +
+             formatPercentage(highAuthorityPct) + " of citations come from domains with DA scores above 50, " +
+             "suggesting that established, trustworthy domains are more likely to be referenced.";
+    } else if (currentPlatform === 'chatgpt') {
+      const midHighAuthorityPct = getDAPercentage('51-75');
+      return "ChatGPT shows a strong preference for high-authority domains. " +
+             formatPercentage(midHighAuthorityPct) + " of all citations come from domains with DA scores between 51-75, " +
+             "indicating a bias toward well-established but not necessarily dominant sites.";
+    } else if (currentPlatform === 'perplexity') {
+      const midAuthorityPct = getDAPercentage('26-50');
+      return "Perplexity AI includes a more balanced distribution of domain authorities, with " +
+             formatPercentage(midAuthorityPct) + " of citations from mid-range authorities. " +
+             "This suggests a slightly broader source selection compared to other LLMs.";
+    }
+    
+    return "Analysis shows strong correlation between domain authority and citation frequency.";
+  } catch (error) {
+    console.error('Error in getCitationInsight:', error);
+    return "Analysis of citation patterns by domain authority is currently unavailable.";
   }
-  
-  return "Analysis shows strong correlation between domain authority and citation frequency.";
 };
 
-// Calculate domain authority metrics if we had access to the actual data
-// This would normally analyze data from reportData
-const calculateDomainAuthorityMetrics = (reportData) => {
-  if (!reportData || !reportData.clients) {
-    return domainAuthorityCitations; // Return sample data
+// Helper for displaying median DA
+const displayMedianDA = () => {
+  try {
+    const currentPlatform = activePlatform.value || 'all';
+    
+    if (citationMetrics.value && citationMetrics.value[currentPlatform]) {
+      const median = citationMetrics.value[currentPlatform].median;
+      if (median !== undefined && median !== null) {
+        return Math.round(median * 10) / 10;
+      }
+    }
+  } catch (error) {
+    console.error("Error in displayMedianDA:", error);
   }
-  
-  // Actual implementation would analyze the real data here and return
-  // structured domain authority distributions by platform
-  
-  return domainAuthorityCitations;
+  return 'N/A';
 };
+
+// Helper for displaying mode range
+const displayModeRange = () => {
+  try {
+    const currentPlatform = activePlatform.value || 'all';
+    
+    if (citationMetrics.value && citationMetrics.value[currentPlatform]) {
+      const modeRange = citationMetrics.value[currentPlatform].modeRange;
+      if (modeRange !== undefined && modeRange !== null) {
+        return modeRange;
+      }
+    }
+  } catch (error) {
+    console.error("Error in displayModeRange:", error);
+  }
+  return 'N/A';
+};
+
+// No calculateDomainAuthorityMetrics function needed anymore
+// Everything is calculated directly in the computed properties
 </script>
 
 <style scoped>

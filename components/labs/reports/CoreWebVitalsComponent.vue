@@ -303,23 +303,10 @@
     cls: { good: 0.1, moderate: 0.25 }   // unit-less
   };
   
-  // Compute metrics from report data
+  // Compute metrics directly from report data - no fallbacks
   const metrics = computed(() => {
-    const calculated = calculateCoreWebVitals(props.reportData);
-    
-    // If we have no data (empty or loading), use sample data as fallback
-    if (calculated.totalPages === 0) {
-      return {
-        fcp: { avg: 5300, median: 4500, min: 4400, max: 7000 },
-        lcp: { avg: 13020, median: 10600, min: 5900, max: 30000 },
-        tbt: { avg: 536.2, median: 650, min: 1, max: 930 },
-        cls: { avg: 0.0524, median: 0.043, min: 0, max: 0.132 },
-        pageSpeed: { avg: 41.4, median: 42, min: 31, max: 52 },
-        totalPages: 5
-      };
-    }
-    
-    return calculated;
+    // Only use actual data from Supabase
+    return calculateCoreWebVitals(props.reportData);
   });
   
   // Helper formatting functions
