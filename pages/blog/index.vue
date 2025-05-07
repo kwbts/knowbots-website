@@ -79,7 +79,6 @@ useSeoMeta({
 
 <template>
   <main class="flex-grow">
-    <!-- Featured Blog Section -->
     <section
       v-if="featuredBlog"
       class="py-12 px-8 border-b border-gray-300 pt-36"
