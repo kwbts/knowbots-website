@@ -357,7 +357,7 @@ const analyzeCompetitors = () => {
     })
     .sort((a, b) => b.count - a.count);
   
-  console.log("Detected competitors:", competitors);
+  // Detected competitors
   
   if (competitors.length > 0) {
     // Store all competitors
@@ -366,13 +366,13 @@ const analyzeCompetitors = () => {
     // Set active competitor to the most frequently mentioned competitor by default
     if (!activeCompetitor.value || !competitors.find(c => c.name === activeCompetitor.value)) {
       activeCompetitor.value = competitors[0].name;
-      console.log("Set active competitor to:", activeCompetitor.value);
+      // Set active competitor to: activeCompetitor.value
     }
   } else {
     // No competitors found, clear the arrays
     allCompetitors.value = [];
     activeCompetitor.value = '';
-    console.log("No competitors found in the data");
+    // No competitors found in the data
   }
 };
 
@@ -430,13 +430,13 @@ const getAdvantageRate = () => {
 
 // Initialize component
 onMounted(() => {
-  console.log("BrandMentionRateGauge mounted with client data:", props.clientData);
+  // BrandMentionRateGauge mounted with client data
   analyzeCompetitors();
 });
 
 // Watch for changes in client data
 watch(() => props.clientData, () => {
-  console.log("Client data updated in BrandMentionRateGauge");
+  // Client data updated in BrandMentionRateGauge
   analyzeCompetitors();
 }, { deep: true });
 </script>

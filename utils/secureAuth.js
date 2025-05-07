@@ -259,6 +259,15 @@ export function verifyAdminToken(token) {
  * @returns {string} Path to client data file
  */
 export function getClientDataPath(clientName) {
+  // Import here to avoid circular dependency - using dynamic import to prevent issues
+  let isProduction;
+  try {
+    isProduction = process.env.NODE_ENV === 'production';
+  } catch(e) {
+    // Fallback if process is not available
+    isProduction = false;
+  }
+  
   // Find client by name (case insensitive)
   const client = clients.find(c => 
     c.name.toLowerCase() === clientName.trim().toLowerCase()
@@ -269,5 +278,40 @@ export function getClientDataPath(clientName) {
     return '/data/default-data.json';
   }
   
+  // In production, use a more secure approach
+  if (isProduction) {
+    // Add a timestamp query parameter to prevent caching
+    const timestamp = Date.now();
+    
+    // In production, route through an API endpoint that can check authorization
+    return `/api/client-data/${client.id}?t=${timestamp}`;
+  }
+  
+  // In development, use direct file access for easier debugging
   return client.dataPath;
+}
+
+/**
+ * Add authorization headers to fetch requests for client data
+ * @param {Object} options - The fetch options
+ * @returns {Object} The updated fetch options with auth headers
+ */
+export function addAuthHeaders(options = {}) {
+  // Get the token from localStorage
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('citebot-token') : null;
+  
+  if (!token) return options;
+  
+  // Create a new options object
+  const newOptions = { ...options };
+  
+  // Add the headers if they don't exist
+  if (!newOptions.headers) {
+    newOptions.headers = {};
+  }
+  
+  // Add the Authorization header
+  newOptions.headers.Authorization = `Bearer ${token}`;
+  
+  return newOptions;
 }

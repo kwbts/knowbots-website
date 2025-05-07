@@ -3,24 +3,33 @@
     <div>
       <h4 class="text-lg font-semibold mb-3 text-darkNavy">Platform Distribution</h4>
       
-      <!-- Platform Distribution -->
-      <div class="flex space-x-3 mb-4">
-        <div 
+      <!-- Platform Selector Toggle Buttons -->
+      <div class="flex mb-4">
+        <button 
           v-for="platform in platforms" 
-          :key="platform.name" 
-          class="relative flex-1 bg-gray-100 rounded-lg p-4"
+          :key="platform.name"
+          class="px-4 py-2 text-sm font-medium transition-colors"
+          :class="activePlatform === platform.name ? 'bg-burntOrangeDark text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'"
+          @click="activePlatform = platform.name"
         >
-          <div class="text-xs text-gray-500 mb-1">{{ platform.label }}</div>
-          <div class="text-xl font-bold text-burntOrangeDark">{{ formatPercentage(platform.mentionRate) }}</div>
-          <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div 
-              class="h-2 rounded-full" 
-              :style="{ 
-                width: `${platform.mentionRate * 100}%`,
-                backgroundColor: platform.color 
-              }"
-            ></div>
+          <div class="flex items-center">
+            {{ platform.label }}
           </div>
+        </button>
+      </div>
+      
+      <!-- Active Platform Distribution -->
+      <div class="mb-4 bg-gray-100 p-4">
+        <div class="text-xs text-gray-500 mb-1">{{ getActivePlatform().label }}</div>
+        <div class="text-xl font-bold text-burntOrangeDark">{{ formatPercentage(getActivePlatform().mentionRate) }}</div>
+        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+          <div 
+            class="h-2 rounded-full" 
+            :style="{ 
+              width: `${getActivePlatform().mentionRate * 100}%`,
+              backgroundColor: 'rgb(194, 65, 12)' 
+            }"
+          ></div>
         </div>
       </div>
       
@@ -42,7 +51,7 @@
   </template>
   
   <script setup>
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, watch } from 'vue';
   
   const props = defineProps({
     clientData: {
@@ -57,15 +66,23 @@
       name: 'perplexity',
       label: 'Perplexity',
       mentionRate: 0,
-      color: '#6C5CE7' // Purple for Perplexity
+      color: '#C2410C' // burntOrangeDark - consistent color
     },
     {
       name: 'chatgpt',
       label: 'ChatGPT',
       mentionRate: 0,
-      color: '#74AA9C' // Green for ChatGPT
+      color: '#C2410C' // burntOrangeDark - consistent color
     }
   ]);
+  
+  // Active platform
+  const activePlatform = ref('perplexity');
+  
+  // Get active platform
+  const getActivePlatform = () => {
+    return platforms.value.find(p => p.name === activePlatform.value) || platforms.value[0];
+  };
   
   // Define funnel stages with default values
   const funnelStages = ref([

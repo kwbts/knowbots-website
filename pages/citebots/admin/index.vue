@@ -210,7 +210,7 @@
   </template>
   
   <script setup>
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, watch } from 'vue';
   import { useRouter } from 'vue-router';
   
   const router = useRouter();
@@ -355,8 +355,11 @@
     
     // Check if the company name is "Admin" and password is "knowbots2025"
     if (username.value.trim() === 'Admin' && password.value === 'knowbots2025') {
-      // Store in local storage to persist login
-      localStorage.setItem('citebot-admin-auth', 'true');
+      // Store in local storage to persist login (only in browser)
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('citebot-admin-auth', 'true');
+      }
+      
       isAuthenticated.value = true;
       
       // Reset fields
@@ -370,8 +373,10 @@
   
   // Handle logout
   const handleLogout = () => {
-    // Remove auth token from local storage
-    localStorage.removeItem('citebot-admin-auth');
+    // Remove auth token from local storage (only in browser)
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('citebot-admin-auth');
+    }
     
     // Reset authenticated state
     isAuthenticated.value = false;
@@ -415,22 +420,25 @@
     // In a real implementation, this would trigger a data refresh process
   };
   
-  // Check auth status on mount
+  // Check auth status on mount (client-side only)
   onMounted(() => {
-    // Check if admin is authenticated from local storage
-    const adminAuth = localStorage.getItem('citebot-admin-auth');
-    isAuthenticated.value = adminAuth === 'true';
-    
-    // If selected client is stored in localStorage, restore it
-    const storedClient = localStorage.getItem('citebot-selected-client');
-    if (storedClient) {
-      selectedClient.value = storedClient;
+    // Check if we're in a browser environment
+    if (typeof localStorage !== 'undefined') {
+      // Check if admin is authenticated from local storage
+      const adminAuth = localStorage.getItem('citebot-admin-auth');
+      isAuthenticated.value = adminAuth === 'true';
+      
+      // If selected client is stored in localStorage, restore it
+      const storedClient = localStorage.getItem('citebot-selected-client');
+      if (storedClient) {
+        selectedClient.value = storedClient;
+      }
     }
   });
   
-  // Watch for changes to selectedClient and save to localStorage
+  // Watch for changes to selectedClient and save to localStorage (client-side only)
   watch(selectedClient, (newValue) => {
-    if (newValue) {
+    if (newValue && typeof localStorage !== 'undefined') {
       localStorage.setItem('citebot-selected-client', newValue);
     }
   });

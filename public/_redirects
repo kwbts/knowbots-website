@@ -4,3 +4,8 @@
 
 # Domain-level redirect
 https://knowbotsmarketing.com/*  https://knowbots.ca/:splat  301!
+
+# Protect sensitive data files - redirect unauthorized access to login
+/*-data.json  /citebots/  401!
+/client-data/*  /citebots/  401!
+/core-sample-*  /citebots/  401!

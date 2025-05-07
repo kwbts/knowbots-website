@@ -133,22 +133,36 @@ const isLoading = ref(true);
 const loadError = ref(null);
 const dataLoaded = ref(false);
 
+// Initialize with false during SSR
+const isAuthenticatedValue = ref(false);
+
 // Authentication check
-const isAuthenticated = computed(() => {
+const isAuthenticated = computed(() => isAuthenticatedValue.value);
+
+// Check auth on client-side only
+onMounted(() => {
   const token = localStorage.getItem('citebot-token');
-  if (!token) return false;
-  
-  const verification = verifyClientToken(token);
-  return verification.valid;
+  if (token) {
+    const verification = verifyClientToken(token);
+    isAuthenticatedValue.value = verification.valid;
+  }
 });
 
+// Default client name value for SSR
+const clientNameValue = ref('');
+
 // Get client name from token
-const clientName = computed(() => {
+const clientName = computed(() => clientNameValue.value);
+
+// Update client name on client-side only
+onMounted(() => {
   const token = localStorage.getItem('citebot-token');
-  if (!token) return '';
-  
-  const verification = verifyClientToken(token);
-  return verification.valid ? verification.clientName : '';
+  if (token) {
+    const verification = verifyClientToken(token);
+    if (verification.valid) {
+      clientNameValue.value = verification.clientName;
+    }
+  }
 });
 
 // Initialize client data
@@ -211,8 +225,11 @@ const loadClientData = async () => {
 
 // Handle logout
 const handleLogout = () => {
-  // Clear client token from localStorage
-  localStorage.removeItem('citebot-token');
+  // Check if localStorage is available (won't be during SSR)
+  if (typeof localStorage !== 'undefined') {
+    // Clear client token from localStorage
+    localStorage.removeItem('citebot-token');
+  }
   
   // Redirect to login page
   router.push('/citebots/');

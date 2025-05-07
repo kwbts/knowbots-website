@@ -55,6 +55,13 @@ useHead({
     {
       type: 'application/ld+json',
       innerHTML: JSON.stringify(organizationSchema)
+    },
+    { 
+      src: '/scripts/dark-mode.js', 
+      type: 'text/javascript',
+      // Make sure it loads and executes before rendering the page
+      body: false, 
+      head: true 
     }
   ]
 });

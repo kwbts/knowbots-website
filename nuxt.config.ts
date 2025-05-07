@@ -7,6 +7,40 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['./assets/css/tailwind.css'],
   
+  // Add Supabase module
+  modules: [
+    '@nuxtjs/supabase'
+  ],
+  
+  // Supabase module configuration
+  supabase: {
+    redirect: false,
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/*']
+    },
+    cookieOptions: {
+      secure: process.env.NODE_ENV === 'production'
+    }
+  },
+  
+  // Environment variables - public ones will be exposed to the client
+  runtimeConfig: {
+    // Private variables (server-side only)
+    // These are only accessible on the server and not exposed to clients
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
+    
+    // Public variables (accessible on client-side)
+    public: {
+      // Supabase configuration
+      supabaseSignedUrl: process.env.SUPABASE_SIGNED_URL, // Legacy - can be removed once API is working
+      storageBucket: process.env.STORAGE_BUCKET || 'may-core-sample',
+      targetFile: process.env.TARGET_FILE || 'core-sample-may-2025.json',
+    }
+  },
+  
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -32,7 +66,7 @@ export default defineNuxtConfig({
   // External dependencies
   vite: {
     ssr: {
-      noExternal: ['rxjs', '@sanity/client', '@sanity/image-url'],
+      noExternal: ['rxjs', '@sanity/client', '@sanity/image-url', '@supabase/supabase-js'],
     },
   },
   

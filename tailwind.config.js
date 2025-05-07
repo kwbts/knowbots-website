@@ -1,4 +1,5 @@
 module.exports = {
+  darkMode: 'class', 
   content: [
     './components/**/*.{vue,js}',
     './layouts/**/*.{vue,js}',
@@ -99,6 +100,7 @@ module.exports = {
         heading: ['Archivo', 'sans-serif'],
         body: ['Alegreya', 'serif'],
         bodyAlt: ['Archivo', 'sans-serif'], // Alternative body font
+        signature: ['Pacifico', 'cursive'], // Signature-style font for personal touches
       },
     },
   },

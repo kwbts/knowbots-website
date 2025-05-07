@@ -132,22 +132,40 @@ const router = useRouter();
 const errorMessage = ref('');
 const dataFilesStatus = ref([]);
 
+// Default to not logged in for SSR
+const isLoggedInValue = ref(false);
+
 // Check if already logged in by verifying token
-const isAlreadyLoggedIn = computed(() => {
-  const token = localStorage.getItem('citebot-token');
-  if (!token) return false;
-  
-  const verification = verifyClientToken(token);
-  return verification.valid;
+const isAlreadyLoggedIn = computed(() => isLoggedInValue.value);
+
+// Check login status on client-side only
+onMounted(() => {
+  if (typeof localStorage !== 'undefined') {
+    const token = localStorage.getItem('citebot-token');
+    if (token) {
+      const verification = verifyClientToken(token);
+      isLoggedInValue.value = verification.valid;
+    }
+  }
 });
 
+// Default client name value for SSR
+const currentClientValue = ref('');
+
 // Get current client name from token
-const currentClient = computed(() => {
-  const token = localStorage.getItem('citebot-token');
-  if (!token) return '';
-  
-  const verification = verifyClientToken(token);
-  return verification.valid ? verification.clientName : '';
+const currentClient = computed(() => currentClientValue.value);
+
+// Update client name on client-side only
+onMounted(() => {
+  if (typeof localStorage !== 'undefined') {
+    const token = localStorage.getItem('citebot-token');
+    if (token) {
+      const verification = verifyClientToken(token);
+      if (verification.valid) {
+        currentClientValue.value = verification.clientName;
+      }
+    }
+  }
 });
 
 // Login form state (only defined once)
@@ -178,7 +196,11 @@ const handleLogin = () => {
   if (auth.success) {
     // Generate and store token
     const token = generateClientToken(auth.clientName);
-    localStorage.setItem('citebot-token', token);
+    
+    // Only try to use localStorage on client-side
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('citebot-token', token);
+    }
     
     // Redirect to dashboard
     router.push('/citebots/dashboard/');
@@ -190,8 +212,15 @@ const handleLogin = () => {
 
 // Handle logout
 const logout = () => {
-  localStorage.removeItem('citebot-token');
-  window.location.reload(); // Reload the page to show login form
+  // Only try to use localStorage on client-side
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem('citebot-token');
+  }
+  
+  // Reload the page to show login form
+  if (typeof window !== 'undefined') {
+    window.location.reload();
+  }
 };
 
 // Check for data files
@@ -240,8 +269,8 @@ onMounted(() => {
   // Check data file availability on mount (for debugging)
   checkDataAvailability();
   
-  // If already logged in, redirect to dashboard
-  if (isAlreadyLoggedIn.value && window.location.pathname === '/citebots/') {
+  // If already logged in, redirect to dashboard, but only on client-side
+  if (typeof window !== 'undefined' && isAlreadyLoggedIn.value && window.location.pathname === '/citebots/') {
     // Only redirect if directly on the login page
     setTimeout(() => {
       router.push('/citebots/dashboard/');

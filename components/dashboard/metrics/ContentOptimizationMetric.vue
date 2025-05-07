@@ -59,13 +59,13 @@
     <!-- Platform & Page Selector Bar -->
     <div class="flex items-center justify-between mb-4">
       <!-- Platform Toggle Buttons -->
-      <div class="flex space-x-1">
+      <div class="flex">
         <button 
           v-for="platform in platforms" 
           :key="platform.value"
           @click="activePlatform = platform.value" 
-          class="px-3 py-1 rounded text-xs font-medium transition-colors"
-          :class="activePlatform === platform.value ? 'bg-blue-600 text-white' : 'bg-gray-100 text-darkGray hover:bg-gray-200'"
+          class="px-3 py-1 text-xs font-medium transition-colors"
+          :class="activePlatform === platform.value ? 'bg-burntOrangeDark text-white' : 'bg-gray-100 text-darkGray hover:bg-gray-200'"
         >
           {{ platform.label }}
         </button>

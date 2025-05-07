@@ -1,6 +1,6 @@
 {
-  "date": "2025-04-08T11:42:15.566Z",
-  "preset": "netlify",
+  "date": "2025-05-05T10:50:40.196Z",
+  "preset": "nitro-prerender",
   "framework": {
     "name": "nuxt",
     "version": "3.14.159"
@@ -8,6 +8,8 @@
   "versions": {
     "nitro": "2.10.4"
   },
-  "commands": {},
+  "commands": {
+    "preview": "npx serve ../../dist"
+  },
   "config": {}
 }

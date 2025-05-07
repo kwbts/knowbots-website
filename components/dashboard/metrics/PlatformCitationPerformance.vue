@@ -4,8 +4,8 @@
     <h4 class="text-lg font-semibold mb-4 text-darkNavy">Platform Citation Performance</h4>
     
     <!-- Platform-specific metrics -->
-    <div class="space-y-12">
-      <div v-for="platform in platforms" :key="platform.name" class="bg-gray-50 p-6 rounded-lg">
+    <div class="space-y-0">
+      <div v-for="platform in platforms" :key="platform.name" class="bg-gray-50 p-6">
         <div class="flex flex-col md:flex-row items-start">
           <!-- Platform Title and Citation Rate -->
           <div class="w-full md:w-1/4 mb-8 md:mb-0">
@@ -281,7 +281,7 @@ const determinePlatform = (page, query) => {
 const analyzePlatformData = () => {
   if (!props.clientData?.query_data || props.clientData.query_data.length === 0) return;
   
-  console.log(`Analyzing platform data for client: ${clientName.value}`);
+  // Analyzing platform data for client
   
   // Reset the platforms with fresh data
   platforms.value = [
@@ -547,14 +547,7 @@ const analyzePlatformData = () => {
           ];
     }
     
-    console.log(`Platform ${platform.name} processed:`, {
-      totalCitations: platform.totalCitations,
-      brandCitations: platform.citationCount,
-      rate: platform.clientRate,
-      avgQuality: platform.avgQuality,
-      matchScore: platform.matchScore,
-      uniqueContentScore: platform.uniqueContentScore
-    });
+    // Platform processed successfully
   });
 };
 
