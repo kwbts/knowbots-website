@@ -259,15 +259,6 @@ export function verifyAdminToken(token) {
  * @returns {string} Path to client data file
  */
 export function getClientDataPath(clientName) {
-  // Import here to avoid circular dependency - using dynamic import to prevent issues
-  let isProduction;
-  try {
-    isProduction = process.env.NODE_ENV === 'production';
-  } catch(e) {
-    // Fallback if process is not available
-    isProduction = false;
-  }
-  
   // Find client by name (case insensitive)
   const client = clients.find(c => 
     c.name.toLowerCase() === clientName.trim().toLowerCase()
@@ -275,27 +266,13 @@ export function getClientDataPath(clientName) {
   
   // If client not found, return a default data path
   if (!client) {
-    return '/data/default-data.json';
+    return '/sample-data.json';
   }
   
-  // Determine if we're in production without redeclaring isProduction
-  let envIsProduction;
-  try {
-    envIsProduction = process.env.NODE_ENV === 'production';
-  } catch(e) {
-    // Fallback if process is not available (client-side)
-    envIsProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
-  }
-
-  // Add a timestamp query parameter to prevent caching
+  // Add a timestamp to prevent caching
   const timestamp = Date.now();
   
-  // In production, use the API endpoint for enhanced security
-  if (envIsProduction) {
-    return `/api/client-data/${client.id}?t=${timestamp}`;
-  }
-  
-  // In development, use direct file access for easier debugging
+  // Simple approach - always use direct file access
   return `${client.dataPath}?t=${timestamp}`;
 }
 
