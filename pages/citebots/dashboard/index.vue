@@ -196,10 +196,10 @@ const loadClientData = async () => {
     // Get client ID from the client name
     const clientId = getClientIdFromName(clientName.value);
     
-    // Use the new API endpoint with client ID
-    const apiUrl = `/api/client-core-sample?clientId=${encodeURIComponent(clientId)}`;
+    // Use the Supabase data API endpoint
+    const apiUrl = `/api/client-supabase-data?clientId=${encodeURIComponent(clientId)}`;
     
-    console.log(`Loading client data from API: ${apiUrl}`);
+    console.log(`Loading client data from Supabase API: ${apiUrl}`);
     
     // Fetch from the API endpoint
     const response = await fetch(apiUrl);
