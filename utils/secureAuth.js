@@ -278,17 +278,12 @@ export function getClientDataPath(clientName) {
     return '/data/default-data.json';
   }
   
-  // In production, use a more secure approach
-  if (isProduction) {
-    // Add a timestamp query parameter to prevent caching
-    const timestamp = Date.now();
-    
-    // In production, route through an API endpoint that can check authorization
-    return `/api/client-data/${client.id}?t=${timestamp}`;
-  }
+  // Add a timestamp query parameter to prevent caching in all environments
+  const timestamp = Date.now();
   
-  // In development, use direct file access for easier debugging
-  return client.dataPath;
+  // Use direct file access in both development and production
+  // This ensures consistency across environments
+  return `${client.dataPath}?t=${timestamp}`;
 }
 
 /**

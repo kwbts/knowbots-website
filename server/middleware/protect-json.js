@@ -11,6 +11,15 @@ export default defineEventHandler((event) => {
       return;
     }
     
+    // If this is a client data file - allow access from the citebot dashboard
+    if (path.includes('-data.json')) {
+      // Check if referrer includes a citebots path as these are legitimate access points
+      const isCitebotsAccess = referer.includes('/citebots/') || referer.includes('/core-sample/');
+      if (isCitebotsAccess) {
+        return; // Allow the request to continue
+      }
+    }
+    
     // Check if referrer is from our own domain
     const hostDomain = url.host;
     const isFromOurSite = referer.includes(hostDomain);
