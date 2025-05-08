@@ -198,8 +198,15 @@ const loadClientData = async () => {
     
     console.log(`Loading client data from: ${dataUrl}`);
     
-    // Fetch client data
-    const response = await fetch(dataUrl);
+    // Add auth headers if available
+    const headers = {};
+    const token = localStorage.getItem('citebot-token');
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Fetch client data with authorization headers
+    const response = await fetch(dataUrl, { headers });
     
     // Check if the request was successful
     if (!response.ok) {

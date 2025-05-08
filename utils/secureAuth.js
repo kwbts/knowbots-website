@@ -278,11 +278,24 @@ export function getClientDataPath(clientName) {
     return '/data/default-data.json';
   }
   
-  // Add a timestamp query parameter to prevent caching in all environments
+  // Import here to avoid circular dependency
+  let isProduction;
+  try {
+    isProduction = process.env.NODE_ENV === 'production';
+  } catch(e) {
+    // Fallback if process is not available (client-side)
+    isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+  }
+
+  // Add a timestamp query parameter to prevent caching
   const timestamp = Date.now();
   
-  // Use direct file access in both development and production
-  // This ensures consistency across environments
+  // In production, use the API endpoint for enhanced security
+  if (isProduction) {
+    return `/api/client-data/${client.id}?t=${timestamp}`;
+  }
+  
+  // In development, use direct file access for easier debugging
   return `${client.dataPath}?t=${timestamp}`;
 }
 
