@@ -278,20 +278,20 @@ export function getClientDataPath(clientName) {
     return '/data/default-data.json';
   }
   
-  // Import here to avoid circular dependency
-  let isProduction;
+  // Determine if we're in production without redeclaring isProduction
+  let envIsProduction;
   try {
-    isProduction = process.env.NODE_ENV === 'production';
+    envIsProduction = process.env.NODE_ENV === 'production';
   } catch(e) {
     // Fallback if process is not available (client-side)
-    isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+    envIsProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
   }
 
   // Add a timestamp query parameter to prevent caching
   const timestamp = Date.now();
   
   // In production, use the API endpoint for enhanced security
-  if (isProduction) {
+  if (envIsProduction) {
     return `/api/client-data/${client.id}?t=${timestamp}`;
   }
   
