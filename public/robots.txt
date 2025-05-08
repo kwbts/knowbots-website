@@ -2,6 +2,14 @@
 User-agent: *
 Allow: /
 
+# Disallow citebots section
+Disallow: /citebots/
+Disallow: /citebots/*
+
+# Allow core sample reports (explicitly to be sure)
+Allow: /core-sample/
+Allow: /core-sample/*
+
 # Disallow all JSON files
 Disallow: /*.json$
 Disallow: /sample-data.json

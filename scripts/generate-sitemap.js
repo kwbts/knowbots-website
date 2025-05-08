@@ -35,7 +35,10 @@ async function generateSitemap() {
       { url: '/services/', changefreq: 'monthly', priority: 0.9 },
       { url: '/contact/', changefreq: 'monthly', priority: 0.8 },
       { url: '/labs/', changefreq: 'monthly', priority: 0.8 },
-      { url: '/blog/', changefreq: 'weekly', priority: 0.9 }
+      { url: '/blog/', changefreq: 'weekly', priority: 0.9 },
+      // Add core sample reports
+      { url: '/core-sample/', changefreq: 'monthly', priority: 0.8 },
+      { url: '/core-sample/may-2025/', changefreq: 'monthly', priority: 0.8 }
     ];
     
     // Fetch blog posts from Sanity

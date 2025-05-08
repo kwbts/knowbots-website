@@ -193,13 +193,16 @@ const loadClientData = async () => {
   }
   
   try {
-    // Get data file path for the authenticated client
-    const dataUrl = getClientDataPath(clientName.value);
+    // Get client ID from the client name
+    const clientId = getClientIdFromName(clientName.value);
     
-    console.log(`Loading client data from: ${dataUrl}`);
+    // Use the new API endpoint with client ID
+    const apiUrl = `/api/client-core-sample?clientId=${encodeURIComponent(clientId)}`;
     
-    // Simple fetch approach - no extra headers needed
-    const response = await fetch(dataUrl);
+    console.log(`Loading client data from API: ${apiUrl}`);
+    
+    // Fetch from the API endpoint
+    const response = await fetch(apiUrl);
     
     // Check if the request was successful
     if (!response.ok) {
@@ -209,8 +212,23 @@ const loadClientData = async () => {
     // Parse the response
     const data = await response.json();
     
-    // Update the client name in the data to match the authenticated client
-    data.client_name = clientName.value;
+    // Make sure client name is set correctly
+    if (!data.client_name) {
+      data.client_name = clientName.value;
+    }
+    
+    // Debug the data structure
+    console.log("Data structure check:", {
+      hasClientName: !!data.client_name,
+      hasQueryData: Array.isArray(data.query_data),
+      queryDataLength: data.query_data?.length || 0,
+      hasClientSummary: !!data.client_summary,
+      firstQuery: data.query_data && data.query_data.length > 0 ? 
+        { 
+          hasAssociatedPages: Array.isArray(data.query_data[0].associated_pages),
+          associatedPagesLength: data.query_data[0].associated_pages?.length || 0
+        } : 'No queries'
+    });
     
     clientData.value = data;
     dataLoaded.value = true;
@@ -222,6 +240,25 @@ const loadClientData = async () => {
     isLoading.value = false;
   }
 };
+
+// Helper function to convert client name to ID
+function getClientIdFromName(clientName) {
+  // Convert client name to lowercase ID format
+  const clientIdMap = {
+    'Knak': 'knak',
+    'Bridgit': 'bridgit',
+    'Fidus': 'fidus',
+    'MetaRouter': 'metarouter',
+    'Klipfolio': 'klipfolio',
+    'Humans of Martech': 'humans-of-martech',
+    'Treasure Data': 'treasure-data',
+    'Cart.com': 'cart',
+    'Emmie Co': 'emmie-co',
+    'Admin': 'admin'
+  };
+  
+  return clientIdMap[clientName] || clientName.toLowerCase().replace(/\s+/g, '-');
+}
 
 // Handle logout
 const handleLogout = () => {
