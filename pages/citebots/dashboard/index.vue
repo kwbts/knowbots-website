@@ -109,9 +109,34 @@
           </div>
         </div>
 
-        <!-- Props Debugger -->
+        <!-- Props Debugger and Raw Data -->
         <div class="mb-6">
-          <PropDebugger :clientData="clientData" title="Main Dashboard Props" />
+          <div class="bg-white p-4 rounded-lg shadow-sm">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-lg font-semibold text-darkNavy">Loading Status Debug</h3>
+              <button @click="showRawData = !showRawData" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm">
+                {{ showRawData ? 'Hide' : 'Show' }} Raw Data
+              </button>
+            </div>
+
+            <!-- Status Information -->
+            <div class="bg-gray-50 p-3 rounded">
+              <div><span class="font-medium">Authentication:</span> {{ isAuthenticated ? 'Yes' : 'No' }}</div>
+              <div><span class="font-medium">Client Name:</span> {{ clientName }}</div>
+              <div><span class="font-medium">Client ID:</span> {{ getClientIdFromName(clientName) }}</div>
+              <div><span class="font-medium">Data Status:</span> {{ dataLoaded ? 'Loaded' : 'Not Loaded' }}</div>
+              <div><span class="font-medium">Loading:</span> {{ isLoading ? 'In Progress' : 'Complete' }}</div>
+              <div><span class="font-medium">Error:</span> {{ loadError || 'None' }}</div>
+              <div><span class="font-medium">Queries:</span> {{ clientData.query_data?.length || 0 }}</div>
+              <div><span class="font-medium">Environment:</span> {{ isDevelopment() ? 'Development' : 'Production' }}</div>
+            </div>
+
+            <!-- Raw Data Output -->
+            <div v-if="showRawData" class="mt-3 bg-gray-50 p-3 rounded max-h-96 overflow-auto">
+              <div class="text-sm font-semibold mb-1">Raw JSON Data:</div>
+              <pre class="text-xs font-mono">{{ JSON.stringify(clientData, null, 2) }}</pre>
+            </div>
+          </div>
         </div>
         <!-- Production Data Debugger -->
         <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
@@ -249,7 +274,7 @@ const clientData = ref({
 import { getSupabaseClient } from '~/utils/supabase/client';
 import { isPrerendering, isProduction, isDevelopment } from '~/utils/environment';
 
-// Load client data directly from static JSON files in the public directory
+// Load client data directly from static JSON files in the public directory - SIMPLIFIED
 const loadClientData = async () => {
   // Reset states
   isLoading.value = true;
@@ -287,91 +312,53 @@ const loadClientData = async () => {
     // Get client ID from the client name
     const clientId = getClientIdFromName(clientName.value);
 
-    // UPDATED PRODUCTION-FRIENDLY APPROACH: Try special dashboard API
+    // ULTRA SIMPLE DIRECT APPROACH: Just load the file directly with no security for citebots section
+    console.log(`Loading data for client ID: ${clientId}`);
+
+    // Direct file access - the simplest, most reliable approach
+    const timestamp = Date.now(); // Cache busting
+    const fileUrl = `/${clientId}-data.json?t=${timestamp}`;
+
+    console.log(`Loading data directly from: ${fileUrl}`);
+
     try {
-      // Use the new dedicated dashboard API endpoint
-      const timestamp = Date.now();
-      const apiEndpoint = `/api/dashboard-data?clientId=${clientId}&t=${timestamp}`;
-
-      console.log(`Loading data via dashboard API endpoint: ${apiEndpoint}`);
-
-      const response = await fetch(apiEndpoint);
+      // Force no-cache for this request
+      const response = await fetch(fileUrl, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        cache: 'no-store'
+      });
 
       if (!response.ok) {
-        throw new Error(`API endpoint failed: ${response.status}`);
+        throw new Error(`Failed to load file: ${response.status}`);
       }
 
+      console.log(`File ${fileUrl} fetch successful, parsing JSON...`);
+
       const jsonData = await response.json();
+      console.log(`JSON parsing successful, data received for ${clientId}`);
 
       // Set client name if needed
       if (!jsonData.client_name) {
         jsonData.client_name = clientName.value;
       }
 
-      // Create a deep clone of the data to avoid reference issues
-      try {
-        clientData.value = JSON.parse(JSON.stringify(jsonData));
-        console.log("Cloned client data successfully");
-      } catch (cloneError) {
-        console.error("Error cloning data:", cloneError);
-        clientData.value = jsonData; // Fallback to direct assignment
-      }
+      // Set the data directly - keep it simple
+      clientData.value = jsonData;
+      console.log(`Data successfully assigned to clientData.value`);
 
+      // Set loading state
       dataLoaded.value = true;
+      console.log(`Dashboard data loaded successfully! Client: ${jsonData.client_name}, Queries: ${jsonData.query_data?.length || 0}`);
+    } catch (error) {
+      console.error('Error loading data file:', error);
 
-      // Verbose logging for production debugging
-      console.log(`Client data loaded successfully.
-        Name: ${clientData.value.client_name},
-        Queries: ${clientData.value.query_data?.length || 0},
-        Has Summary: ${!!clientData.value.client_summary}`);
-
-      // Force reactivity refresh for the components
-      setTimeout(() => {
-        console.log("Triggering reactivity refresh");
-        const temp = {...clientData.value};
-        clientData.value = temp;
-      }, 100);
-    } catch (apiError) {
-      if (isDevelopment()) console.error('API endpoint error:', apiError);
-
-      // If API fails and we're in development, try direct file access as fallback
-      if (isDevelopment()) {
-        try {
-          const fileName = `/${clientId}-data.json`;
-          console.log(`Falling back to direct file: ${fileName}`);
-
-          const timestamp = Date.now();
-          const response = await fetch(`${fileName}?t=${timestamp}`);
-
-          if (!response.ok) {
-            throw new Error(`Failed to load file: ${response.status}`);
-          }
-
-          const jsonData = await response.json();
-
-          if (!jsonData.client_name) {
-            jsonData.client_name = clientName.value;
-          }
-
-          // Create a deep clone of the data to avoid reference issues
-          try {
-            clientData.value = JSON.parse(JSON.stringify(jsonData));
-            console.log("Cloned client data successfully from direct file");
-          } catch (cloneError) {
-            console.error("Error cloning data:", cloneError);
-            clientData.value = jsonData; // Fallback to direct assignment
-          }
-
-          dataLoaded.value = true;
-          console.log("Client data loaded successfully from direct file");
-          return;
-        } catch (fileError) {
-          console.error('Direct file access error:', fileError);
-        }
-      }
-
-      // If all else fails, use fallback data
-      const fallbackData = {
+      // Use fallback data if direct load fails
+      console.log(`Using fallback data for ${clientName.value}`);
+      clientData.value = {
         client_name: clientName.value,
         source: 'fallback-data',
         query_data: generateFallbackData(clientId),
@@ -384,16 +371,7 @@ const loadClientData = async () => {
           average_domain_authority: 38
         }
       };
-
-      clientData.value = fallbackData;
       dataLoaded.value = true;
-
-      console.log("Using fallback data for client:", clientName.value);
-      console.log("Fallback data summary:", {
-        clientName: fallbackData.client_name,
-        queryCount: fallbackData.query_data.length,
-        hasSummary: !!fallbackData.client_summary
-      });
     }
   } catch (error) {
     if (isDevelopment()) console.error('Error loading client data:', error);

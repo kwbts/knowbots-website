@@ -10,32 +10,20 @@
     content-type = "application/xml"
     X-Content-Type-Options = "nosniff"
 
-# Remove CSP for client data JSON files to allow direct access
+# Allow direct access to client data JSON files with minimal headers
 [[headers]]
   for = "/*-data.json"
   [headers.values]
-    X-Robots-Tag = "noindex, nofollow"
-    X-Content-Type-Options = "nosniff"
-    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate"
-    Content-Type = "application/json; charset=utf-8"
     Access-Control-Allow-Origin = "*"
+    Content-Type = "application/json; charset=utf-8"
 
-# Protect other JSON files from being accessed directly
+# Protected JSON files (all other JSONs)
 [[headers]]
   for = "/*.json"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
     X-Content-Type-Options = "nosniff"
-    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate"
-    Content-Security-Policy = "default-src 'none'"
     Content-Type = "application/json; charset=utf-8"
-
-# Add specific _redirects for direct JSON access
-[[redirects]]
-  from = "/*-data.json"
-  to = "/:splat-data.json"
-  status = 200
-  force = true
 
 [[headers]]
   for = "/*"
