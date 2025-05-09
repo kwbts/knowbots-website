@@ -10,7 +10,7 @@
     content-type = "application/xml"
     X-Content-Type-Options = "nosniff"
 
-# Allow access to client data JSON files
+# Remove CSP for client data JSON files to allow direct access
 [[headers]]
   for = "/*-data.json"
   [headers.values]
@@ -29,6 +29,13 @@
     Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate"
     Content-Security-Policy = "default-src 'none'"
     Content-Type = "application/json; charset=utf-8"
+
+# Add specific _redirects for direct JSON access
+[[redirects]]
+  from = "/*-data.json"
+  to = "/:splat-data.json"
+  status = 200
+  force = true
 
 [[headers]]
   for = "/*"

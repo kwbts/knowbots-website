@@ -249,19 +249,18 @@ const loadClientData = async () => {
     // Get client ID from the client name
     const clientId = getClientIdFromName(clientName.value);
 
-    // DIRECT FILE APPROACH: Load JSON directly from the public directory
-    // This completely bypasses API endpoints and Supabase
-    const fileName = `/${clientId}-data.json`;
-
-    if (isDevelopment()) console.log(`Loading data directly from static file: ${fileName}`);
-
+    // PRODUCTION-FRIENDLY APPROACH: Try API endpoint first, then fallback to direct file if needed
     try {
-      // Add cache-busting parameter to prevent caching issues
+      // First, try the API endpoint approach which works more reliably in production
       const timestamp = Date.now();
-      const response = await fetch(`${fileName}?t=${timestamp}`);
+      const apiEndpoint = `/api/client-direct-json?clientId=${clientId}&t=${timestamp}`;
+
+      if (isDevelopment()) console.log(`Loading data via API endpoint: ${apiEndpoint}`);
+
+      const response = await fetch(apiEndpoint);
 
       if (!response.ok) {
-        throw new Error(`Failed to load file: ${response.status}`);
+        throw new Error(`API endpoint failed: ${response.status}`);
       }
 
       const jsonData = await response.json();
@@ -274,11 +273,39 @@ const loadClientData = async () => {
       clientData.value = jsonData;
       dataLoaded.value = true;
 
-      if (isDevelopment()) console.log("Client data loaded successfully from static file");
-    } catch (fetchError) {
-      if (isDevelopment()) console.error('Error loading static file:', fetchError);
+      if (isDevelopment()) console.log("Client data loaded successfully via API");
+    } catch (apiError) {
+      if (isDevelopment()) console.error('API endpoint error:', apiError);
 
-      // If static file fails, use fallback data
+      // If API fails and we're in development, try direct file access as fallback
+      if (isDevelopment()) {
+        try {
+          const fileName = `/${clientId}-data.json`;
+          console.log(`Falling back to direct file: ${fileName}`);
+
+          const timestamp = Date.now();
+          const response = await fetch(`${fileName}?t=${timestamp}`);
+
+          if (!response.ok) {
+            throw new Error(`Failed to load file: ${response.status}`);
+          }
+
+          const jsonData = await response.json();
+
+          if (!jsonData.client_name) {
+            jsonData.client_name = clientName.value;
+          }
+
+          clientData.value = jsonData;
+          dataLoaded.value = true;
+          console.log("Client data loaded successfully from direct file");
+          return;
+        } catch (fileError) {
+          console.error('Direct file access error:', fileError);
+        }
+      }
+
+      // If all else fails, use fallback data
       clientData.value = {
         client_name: clientName.value,
         source: 'fallback-data',
