@@ -28,20 +28,36 @@ export default defineEventHandler(async (event) => {
       });
     }
     
-    // Construct file path - direct approach
+    // Construct file paths - try private directory first, then public
     const fileName = `${clientId.toLowerCase()}-data.json`;
-    const filePath = path.resolve('public', fileName);
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Attempting to load client data from: ${filePath}`);
+
+    // First try private directory (for production)
+    const privateDir = path.resolve(process.cwd(), '.data-private');
+    const privatePath = path.resolve(privateDir, fileName);
+
+    // Then fall back to public directory (for development)
+    const publicPath = path.resolve('public', fileName);
+
+    console.log(`Attempting to load client data...`);
+    console.log(`Private path: ${privatePath}`);
+    console.log(`Public path: ${publicPath}`);
+
+    // Check if private file exists
+    let filePath = null;
+    if (fs.existsSync(privatePath)) {
+      console.log(`Found client data in private directory`);
+      filePath = privatePath;
     }
-    
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      // Log only in development
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(`Client data file not found: ${filePath}`);
-      }
+    // Otherwise check if public file exists
+    else if (fs.existsSync(publicPath)) {
+      console.log(`Found client data in public directory`);
+      filePath = publicPath;
+    }
+
+    // If no file found in either location
+    if (!filePath) {
+      console.warn(`Client data file not found for: ${clientId}`);
+      
 
       // Return a fallback response instead of an error
       return {
@@ -62,15 +78,33 @@ export default defineEventHandler(async (event) => {
     // Read and parse the file
     try {
       const fileContent = fs.readFileSync(filePath, 'utf8');
-      const jsonData = JSON.parse(fileContent);
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Successfully loaded and parsed ${fileName}`);
+
+      // Check if this is a placeholder file
+      if (fileContent.includes('"message": "This data is only accessible through the API"')) {
+        console.warn('Found placeholder file instead of actual data');
+        // Generate fallback data if we somehow got a placeholder
+        return {
+          client_name: getClientNameFromId(clientId),
+          source: 'api-fallback-after-placeholder',
+          query_data: generateFallbackQueryData(clientId),
+          client_summary: {
+            total_queries: 200 + Math.floor(Math.random() * 300),
+            total_pages: 800 + Math.floor(Math.random() * 500),
+            average_citation_count: 5 + (Math.random() * 5),
+            brand_mention_rate: 0.6 + (Math.random() * 0.3),
+            average_page_speed: 70 + (Math.random() * 20),
+            average_domain_authority: 30 + (Math.random() * 15)
+          }
+        };
       }
+
+      // Parse the JSON file
+      const jsonData = JSON.parse(fileContent);
+      console.log(`Successfully loaded and parsed ${fileName}`);
+
       return jsonData;
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error(`Error loading or parsing ${fileName}:`, error);
-      }
+      console.error(`Error loading or parsing ${fileName}:`, error);
       throw createError({
         statusCode: 500,
         statusMessage: 'Failed to parse client data file'

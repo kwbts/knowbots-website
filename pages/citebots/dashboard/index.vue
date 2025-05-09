@@ -273,43 +273,43 @@ export default {
       return clientIdMap[name] || name.toLowerCase().replace(/\s+/g, '-');
     },
     
-    // Load client data directly from JSON file
+    // Load client data from API endpoint
     async loadData() {
       if (!this.authenticated) return;
-      
+
       this.loading = true;
       this.error = null;
-      
+
       try {
         const timestamp = Date.now(); // Cache busting
-        const url = `/${this.client_id}-data.json?t=${timestamp}`;
-        
-        console.log(`Loading data from: ${url}`);
-        
-        const response = await fetch(url, {
+        const apiUrl = `/api/client-direct-json?clientId=${this.client_id}&t=${timestamp}`;
+
+        console.log(`Loading data from API: ${apiUrl}`);
+
+        const response = await fetch(apiUrl, {
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0'
           }
         });
-        
+
         if (!response.ok) {
-          throw new Error(`Failed to load data: HTTP ${response.status}`);
+          throw new Error(`API error: ${response.status}`);
         }
-        
+
         const jsonData = await response.json();
-        console.log('Data loaded successfully:', jsonData);
-        
+        console.log('Data loaded successfully from API:', jsonData);
+
         // Make sure client name is set
         if (!jsonData.client_name) {
           jsonData.client_name = this.client_name;
         }
-        
+
         // Assign data to component state
         this.dashboard_data = jsonData;
         this.dataLoaded = true;
-        
+
         // Force component update to ensure changes are reflected
         this.$forceUpdate();
       } catch (err) {
