@@ -196,10 +196,10 @@ const loadClientData = async () => {
     // Get client ID from the client name
     const clientId = getClientIdFromName(clientName.value);
     
-    // Use the Supabase data API endpoint
-    const apiUrl = `/api/client-supabase-data?clientId=${encodeURIComponent(clientId)}`;
+    // Use the simple direct JSON API endpoint
+    const apiUrl = `/api/client-direct-json?clientId=${encodeURIComponent(clientId)}`;
     
-    console.log(`Loading client data from Supabase API: ${apiUrl}`);
+    console.log(`Loading client data from direct JSON API: ${apiUrl}`);
     
     // Fetch from the API endpoint
     const response = await fetch(apiUrl);

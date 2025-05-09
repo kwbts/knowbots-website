@@ -108,6 +108,14 @@ export default defineNuxtConfig({
       '/blog/**': { static: true },
       '/core-sample/**': { static: true },
       
+      // Special rule for citebots API endpoints - ensure they are handled dynamically
+      '/api/client-direct-json': { swr: false },
+      '/api/client-supabase-data': { swr: false },
+      '/api/client-core-sample': { swr: false },
+      
+      // Special treatment for citebots pages - ensure they are handled dynamically
+      '/citebots/**': { static: false },
+      
       // Protect JSON files
       '/**/*.json': {
         headers: {
