@@ -92,6 +92,10 @@ const props = defineProps({
 const clientName = computed(() => {
   // Make sure we're using the actual client name from the data
   const name = props.clientData?.client_name;
+
+  // Debug to console in production
+  console.log('PerformanceSummary component received clientData:', JSON.stringify(props.clientData));
+
   return name || 'Client';
 });
 

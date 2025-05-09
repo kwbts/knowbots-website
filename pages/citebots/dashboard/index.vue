@@ -99,11 +99,33 @@
       
       <!-- Dashboard Content -->
       <div v-else class="space-y-6">
+        <!-- Production Data Debugger -->
+        <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-semibold text-darkNavy">Data Status</h3>
+            <button @click="showRawData = !showRawData" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm">
+              {{ showRawData ? 'Hide' : 'Show' }} Raw Data
+            </button>
+          </div>
+          <div class="bg-gray-50 p-3 rounded">
+            <div><span class="font-medium">Client Name:</span> {{ clientData.client_name }}</div>
+            <div><span class="font-medium">Queries:</span> {{ clientData.query_data ? clientData.query_data.length : 0 }}</div>
+            <div><span class="font-medium">Data Source:</span> {{ clientData.source || 'API/File' }}</div>
+            <div><span class="font-medium">Data Loaded:</span> {{ dataLoaded ? 'Yes' : 'No' }}</div>
+            <div><span class="font-medium">Has Client Summary:</span> {{ clientData.client_summary ? 'Yes' : 'No' }}</div>
+          </div>
+
+          <!-- Raw Data Debugger -->
+          <div v-if="showRawData" class="mt-4 bg-gray-50 p-3 rounded max-h-80 overflow-auto">
+            <pre class="text-xs font-mono">{{ JSON.stringify(clientData, null, 2) }}</pre>
+          </div>
+        </div>
+
         <!-- Debug Component -->
         <div v-if="dataLoaded" class="mb-6">
           <MetricsDebugger :clientData="clientData" />
         </div>
-        
+
         <!-- Performance Summary -->
         <div v-if="dataLoaded" class="mb-6">
           <PerformanceSummary :clientData="clientData" />
@@ -160,6 +182,7 @@ const router = useRouter();
 const isLoading = ref(true);
 const loadError = ref(null);
 const dataLoaded = ref(false);
+const showRawData = ref(false); // For debugging data in production
 
 // Initialize with false during SSR
 const isAuthenticatedValue = ref(false);
@@ -270,10 +293,29 @@ const loadClientData = async () => {
         jsonData.client_name = clientName.value;
       }
 
-      clientData.value = jsonData;
+      // Create a deep clone of the data to avoid reference issues
+      try {
+        clientData.value = JSON.parse(JSON.stringify(jsonData));
+        console.log("Cloned client data successfully");
+      } catch (cloneError) {
+        console.error("Error cloning data:", cloneError);
+        clientData.value = jsonData; // Fallback to direct assignment
+      }
+
       dataLoaded.value = true;
 
-      if (isDevelopment()) console.log("Client data loaded successfully via API");
+      // Verbose logging for production debugging
+      console.log(`Client data loaded successfully.
+        Name: ${clientData.value.client_name},
+        Queries: ${clientData.value.query_data?.length || 0},
+        Has Summary: ${!!clientData.value.client_summary}`);
+
+      // Force reactivity refresh for the components
+      setTimeout(() => {
+        console.log("Triggering reactivity refresh");
+        const temp = {...clientData.value};
+        clientData.value = temp;
+      }, 100);
     } catch (apiError) {
       if (isDevelopment()) console.error('API endpoint error:', apiError);
 
@@ -296,7 +338,15 @@ const loadClientData = async () => {
             jsonData.client_name = clientName.value;
           }
 
-          clientData.value = jsonData;
+          // Create a deep clone of the data to avoid reference issues
+          try {
+            clientData.value = JSON.parse(JSON.stringify(jsonData));
+            console.log("Cloned client data successfully from direct file");
+          } catch (cloneError) {
+            console.error("Error cloning data:", cloneError);
+            clientData.value = jsonData; // Fallback to direct assignment
+          }
+
           dataLoaded.value = true;
           console.log("Client data loaded successfully from direct file");
           return;
@@ -306,7 +356,7 @@ const loadClientData = async () => {
       }
 
       // If all else fails, use fallback data
-      clientData.value = {
+      const fallbackData = {
         client_name: clientName.value,
         source: 'fallback-data',
         query_data: generateFallbackData(clientId),
@@ -319,7 +369,16 @@ const loadClientData = async () => {
           average_domain_authority: 38
         }
       };
+
+      clientData.value = fallbackData;
       dataLoaded.value = true;
+
+      console.log("Using fallback data for client:", clientName.value);
+      console.log("Fallback data summary:", {
+        clientName: fallbackData.client_name,
+        queryCount: fallbackData.query_data.length,
+        hasSummary: !!fallbackData.client_summary
+      });
     }
   } catch (error) {
     if (isDevelopment()) console.error('Error loading client data:', error);
