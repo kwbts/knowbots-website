@@ -211,7 +211,7 @@ const clientData = ref({
 import { getSupabaseClient } from '~/utils/supabase/client';
 import { isPrerendering, isProduction, isDevelopment } from '~/utils/environment';
 
-// Load client data consistently across all environments
+// Use a direct and simple approach for loading client data in all environments
 const loadClientData = async () => {
   // Reset states
   isLoading.value = true;
@@ -249,56 +249,12 @@ const loadClientData = async () => {
     // Get client ID from the client name
     const clientId = getClientIdFromName(clientName.value);
 
-    // CONSISTENT APPROACH: Always try Supabase first, then fallback to API
-    if (isDevelopment()) console.log("Attempting to load from Supabase storage");
+    // SIMPLIFIED APPROACH: Use the direct JSON API endpoint in all environments
+    // This bypasses any Supabase credential issues in production
+    if (isDevelopment()) console.log("Loading data via API endpoint");
 
-    try {
-      // Get the Supabase client
-      const supabase = getSupabaseClient();
-
-      if (!supabase) {
-        throw new Error('Supabase client not initialized');
-      }
-
-      // Use same storage bucket as core sample
-      const bucket = 'may-core-sample';
-      const filePath = `clients/${clientId}-data.json`;
-
-      if (isDevelopment()) console.log(`Loading from Supabase: ${bucket}/${filePath}`);
-
-      // Download file directly from Supabase storage
-      const { data, error } = await supabase
-        .storage
-        .from(bucket)
-        .download(filePath);
-
-      if (error) {
-        throw new Error(`Supabase error: ${error.message}`);
-      }
-
-      if (!data) {
-        throw new Error('No data received from Supabase');
-      }
-
-      // Parse the JSON
-      const text = await data.text();
-      const jsonData = JSON.parse(text);
-
-      // Set client name if needed
-      if (!jsonData.client_name) {
-        jsonData.client_name = clientName.value;
-      }
-
-      clientData.value = jsonData;
-      dataLoaded.value = true;
-      if (isDevelopment()) console.log("Client data loaded successfully from Supabase");
-    } catch (supabaseError) {
-      if (isDevelopment()) console.error('Supabase error:', supabaseError);
-
-      // Fall back to API approach as last resort
-      if (isDevelopment()) console.log("Falling back to API endpoint");
-      await loadFromApi(clientId);
-    }
+    // Use the direct API endpoint
+    await loadFromApi(clientId);
   } catch (error) {
     if (isDevelopment()) console.error('Error loading client data:', error);
     loadError.value = `Unable to load data for ${clientName.value}. Please try again later.`;
