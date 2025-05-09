@@ -121,6 +121,12 @@ const hashString = (str) => {
  * @returns {Object} The obfuscated data
  */
 export const obfuscateClientData = (data, options = {}) => {
+  // TEMPORARILY DISABLED FOR TROUBLESHOOTING
+  
+  // Always return unmodified data regardless of environment
+  return data;
+  
+  /* Original implementation left for reference
   // Don't obfuscate in development unless forced
   if (!isProduction() && !options.forceObfuscation) {
     return data;
@@ -141,70 +147,10 @@ export const obfuscateClientData = (data, options = {}) => {
       clonedData.client_name = `${clonedData.client_name.substring(0, 2)}...${hashString(clonedData.client_name)}`;
     }
   }
+  */
   
-  // Obfuscate URLs and domains
-  if (clonedData.domains && Array.isArray(clonedData.domains)) {
-    clonedData.domains = clonedData.domains.map(domain => {
-      return `${domain.split('.')[0]}.xxx.xxx`;
-    });
-  }
-  
-  // Obfuscate email addresses
-  if (clonedData.email) {
-    const emailParts = clonedData.email.split('@');
-    if (emailParts.length === 2) {
-      clonedData.email = `${emailParts[0].substring(0, 2)}...@xxx.xxx`;
-    }
-  }
-  
-  // Handle query data - obfuscate sensitive information
-  if (clonedData.query_data && Array.isArray(clonedData.query_data)) {
-    clonedData.query_data = clonedData.query_data.map(query => {
-      // Clone query to avoid mutating original
-      const processedQuery = { ...query };
-      
-      // Obfuscate brand names in text
-      if (processedQuery.query_text) {
-        // Keep the query but remove any brand names (assuming brands are capitalized)
-        processedQuery.query_text = processedQuery.query_text
-          .replace(/\b[A-Z][a-z]+ ?[A-Z][a-z]+\b/g, '[BRAND]') // Pattern for "Brand Name"
-          .replace(/\b[A-Z][A-Z]+\b/g, '[BRAND]'); // Pattern for "BRAND" all caps
-      }
-      
-      // Obfuscate URLs in associated pages
-      if (processedQuery.associated_pages && Array.isArray(processedQuery.associated_pages)) {
-        processedQuery.associated_pages = processedQuery.associated_pages.map(page => {
-          const processedPage = { ...page };
-          
-          if (processedPage.citation_url) {
-            const urlParts = processedPage.citation_url.split('/');
-            if (urlParts.length > 2) {
-              const domain = urlParts[2];
-              const domainParts = domain.split('.');
-              if (domainParts.length > 1) {
-                const obfuscatedDomain = `${domainParts[0]}.xxx.xxx`;
-                urlParts[2] = obfuscatedDomain;
-                processedPage.citation_url = `${urlParts[0]}//${obfuscatedDomain}/[...]`;
-              }
-            }
-          }
-          
-          // Obfuscate page titles that might contain client/brand names
-          if (processedPage.page_title) {
-            processedPage.page_title = processedPage.page_title
-              .replace(/\b[A-Z][a-z]+ ?[A-Z][a-z]+\b/g, '[BRAND]')
-              .replace(/\b[A-Z][A-Z]+\b/g, '[BRAND]');
-          }
-          
-          return processedPage;
-        });
-      }
-      
-      return processedQuery;
-    });
-  }
-  
-  return clonedData;
+  /* ALL DATA OBFUSCATION TEMPORARILY DISABLED FOR TROUBLESHOOTING */
+  return data;
 };
 
 /**
