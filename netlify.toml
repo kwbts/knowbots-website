@@ -10,7 +10,17 @@
     content-type = "application/xml"
     X-Content-Type-Options = "nosniff"
 
-# Protect JSON files from being accessed directly
+# Allow access to client data JSON files
+[[headers]]
+  for = "/*-data.json"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Content-Type-Options = "nosniff"
+    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate"
+    Content-Type = "application/json; charset=utf-8"
+    Access-Control-Allow-Origin = "*"
+
+# Protect other JSON files from being accessed directly
 [[headers]]
   for = "/*.json"
   [headers.values]
