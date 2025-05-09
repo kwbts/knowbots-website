@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Data Access Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.5;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background-color: #f9f9f9;
+    }
+    button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      font-size: 14px;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    button:hover {
+      background-color: #2563eb;
+    }
+    pre {
+      background-color: #f0f0f0;
+      padding: 1rem;
+      border-radius: 4px;
+      overflow: auto;
+      max-height: 400px;
+      font-size: 12px;
+    }
+    .status {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    .status.success {
+      color: #16a34a;
+    }
+    .status.error {
+      color: #dc2626;
+    }
+    .loading {
+      color: #6b7280;
+    }
+    h1, h2 {
+      color: #1e3a8a;
+    }
+    .files-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>JSON Data Access Test</h1>
+  <p>This page tests access to JSON data files in the production environment.</p>
+  
+  <div class="card">
+    <h2>Direct JSON File Access</h2>
+    <p>Click on any client file to test if it's directly accessible:</p>
+    <div class="files-container" id="fileButtons">
+      <!-- File buttons will be generated here -->
+    </div>
+    
+    <div id="fileStatus" class="status"></div>
+    <pre id="fileContent" style="display: none;"></pre>
+  </div>
+  
+  <div class="card">
+    <h2>API Endpoint Access</h2>
+    <p>Click on any client to test API access:</p>
+    <div class="files-container" id="apiButtons">
+      <!-- API buttons will be generated here -->
+    </div>
+    
+    <div id="apiStatus" class="status"></div>
+    <pre id="apiContent" style="display: none;"></pre>
+  </div>
+  
+  <div class="card">
+    <h2>Environment Information</h2>
+    <div id="envInfo"></div>
+  </div>
+
+  <script>
+    // Client list
+    const clients = [
+      { id: 'knak', name: 'Knak' },
+      { id: 'bridgit', name: 'Bridgit' },
+      { id: 'fidus', name: 'Fidus' },
+      { id: 'metarouter', name: 'MetaRouter' },
+      { id: 'klipfolio', name: 'Klipfolio' },
+      { id: 'humans-of-martech', name: 'Humans of Martech' },
+      { id: 'treasure-data', name: 'Treasure Data' },
+      { id: 'cart', name: 'Cart.com' },
+      { id: 'emmie-co', name: 'Emmie Co' },
+      { id: 'admin', name: 'Admin (sample)' }
+    ];
+
+    // Generate file buttons
+    const fileButtonsContainer = document.getElementById('fileButtons');
+    clients.forEach(client => {
+      const button = document.createElement('button');
+      button.textContent = client.name;
+      button.onclick = () => testDirectAccess(client.id);
+      fileButtonsContainer.appendChild(button);
+    });
+
+    // Generate API buttons
+    const apiButtonsContainer = document.getElementById('apiButtons');
+    clients.forEach(client => {
+      const button = document.createElement('button');
+      button.textContent = client.name;
+      button.onclick = () => testApiAccess(client.id);
+      apiButtonsContainer.appendChild(button);
+    });
+
+    // Test direct file access
+    async function testDirectAccess(clientId) {
+      const fileStatus = document.getElementById('fileStatus');
+      const fileContent = document.getElementById('fileContent');
+      
+      fileStatus.className = 'status loading';
+      fileStatus.textContent = 'Loading...';
+      fileContent.style.display = 'none';
+      
+      try {
+        const timestamp = Date.now();
+        const url = `/${clientId}-data.json?t=${timestamp}`;
+        console.log('Fetching file:', url);
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to load file: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        fileStatus.className = 'status success';
+        fileStatus.textContent = `Success! Loaded ${clientId}-data.json directly`;
+        fileContent.textContent = JSON.stringify(data, null, 2).substring(0, 2000) + (JSON.stringify(data).length > 2000 ? '...(truncated)' : '');
+        fileContent.style.display = 'block';
+        
+        console.log('File data:', data);
+      } catch (error) {
+        fileStatus.className = 'status error';
+        fileStatus.textContent = `Error: ${error.message}`;
+        fileContent.textContent = error.stack || error.message;
+        fileContent.style.display = 'block';
+        console.error('File access error:', error);
+      }
+    }
+
+    // Test API access
+    async function testApiAccess(clientId) {
+      const apiStatus = document.getElementById('apiStatus');
+      const apiContent = document.getElementById('apiContent');
+      
+      apiStatus.className = 'status loading';
+      apiStatus.textContent = 'Loading...';
+      apiContent.style.display = 'none';
+      
+      try {
+        const timestamp = Date.now();
+        const url = `/api/client-direct-json?clientId=${clientId}&t=${timestamp}`;
+        console.log('Fetching API:', url);
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`API returned status: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        apiStatus.className = 'status success';
+        apiStatus.textContent = `Success! Loaded data via API for client: ${clientId}`;
+        apiContent.textContent = JSON.stringify(data, null, 2).substring(0, 2000) + (JSON.stringify(data).length > 2000 ? '...(truncated)' : '');
+        apiContent.style.display = 'block';
+        
+        console.log('API data:', data);
+      } catch (error) {
+        apiStatus.className = 'status error';
+        apiStatus.textContent = `Error: ${error.message}`;
+        apiContent.textContent = error.stack || error.message;
+        apiContent.style.display = 'block';
+        console.error('API access error:', error);
+      }
+    }
+
+    // Show environment info
+    function showEnvironmentInfo() {
+      const envInfo = document.getElementById('envInfo');
+      const envData = {
+        'URL': window.location.href,
+        'User Agent': navigator.userAgent,
+        'Timestamp': new Date().toISOString(),
+        'Protocol': window.location.protocol,
+        'Host': window.location.host
+      };
+      
+      Object.entries(envData).forEach(([key, value]) => {
+        const div = document.createElement('div');
+        const strong = document.createElement('strong');
+        strong.textContent = key + ': ';
+        div.appendChild(strong);
+        div.appendChild(document.createTextNode(value));
+        envInfo.appendChild(div);
+      });
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      showEnvironmentInfo();
+    });
+  </script>
+</body>
+</html>

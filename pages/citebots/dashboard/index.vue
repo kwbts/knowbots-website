@@ -287,13 +287,13 @@ const loadClientData = async () => {
     // Get client ID from the client name
     const clientId = getClientIdFromName(clientName.value);
 
-    // PRODUCTION-FRIENDLY APPROACH: Try API endpoint first, then fallback to direct file if needed
+    // UPDATED PRODUCTION-FRIENDLY APPROACH: Try special dashboard API
     try {
-      // First, try the API endpoint approach which works more reliably in production
+      // Use the new dedicated dashboard API endpoint
       const timestamp = Date.now();
-      const apiEndpoint = `/api/client-direct-json?clientId=${clientId}&t=${timestamp}`;
+      const apiEndpoint = `/api/dashboard-data?clientId=${clientId}&t=${timestamp}`;
 
-      if (isDevelopment()) console.log(`Loading data via API endpoint: ${apiEndpoint}`);
+      console.log(`Loading data via dashboard API endpoint: ${apiEndpoint}`);
 
       const response = await fetch(apiEndpoint);
 

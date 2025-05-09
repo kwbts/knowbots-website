@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Simple Data Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow: auto; }
+    button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Super Simple Data Test</h1>
+  <p>This is a minimal test page with no dependencies.</p>
+  
+  <div>
+    <h2>1. Try Direct Fetch</h2>
+    <button onclick="fetchBridgit()">Fetch Bridgit Data</button>
+    <button onclick="fetchKnak()">Fetch Knak Data</button>
+    <div id="directResult"></div>
+  </div>
+  
+  <div>
+    <h2>2. Try API Fetch</h2>
+    <button onclick="fetchApi('bridgit')">API: Bridgit</button>
+    <button onclick="fetchApi('knak')">API: Knak</button>
+    <div id="apiResult"></div>
+  </div>
+  
+  <div>
+    <h2>3. Server Diagnostics</h2>
+    <button onclick="fetchServerTest()">Run Server Test</button>
+    <div id="serverResult"></div>
+  </div>
+  
+  <script>
+    // 1. Direct data fetch
+    function fetchBridgit() {
+      const resultDiv = document.getElementById('directResult');
+      resultDiv.innerHTML = '<p>Loading...</p>';
+      
+      fetch('/bridgit-data.json?t=' + Date.now())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const summary = {
+            client_name: data.client_name,
+            query_count: data.query_data ? data.query_data.length : 0,
+            has_summary: !!data.client_summary
+          };
+          
+          resultDiv.innerHTML = 
+            `<p class="success">✅ Success! Loaded Bridgit data</p>
+             <pre>${JSON.stringify(summary, null, 2)}</pre>`;
+        })
+        .catch(error => {
+          resultDiv.innerHTML = 
+            `<p class="error">❌ Error: ${error.message}</p>
+             <pre>${error.stack || ''}</pre>`;
+        });
+    }
+    
+    function fetchKnak() {
+      const resultDiv = document.getElementById('directResult');
+      resultDiv.innerHTML = '<p>Loading...</p>';
+      
+      fetch('/knak-data.json?t=' + Date.now())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const summary = {
+            client_name: data.client_name,
+            query_count: data.query_data ? data.query_data.length : 0,
+            has_summary: !!data.client_summary
+          };
+          
+          resultDiv.innerHTML = 
+            `<p class="success">✅ Success! Loaded Knak data</p>
+             <pre>${JSON.stringify(summary, null, 2)}</pre>`;
+        })
+        .catch(error => {
+          resultDiv.innerHTML = 
+            `<p class="error">❌ Error: ${error.message}</p>
+             <pre>${error.stack || ''}</pre>`;
+        });
+    }
+    
+    // 2. API fetch
+    function fetchApi(clientId) {
+      const resultDiv = document.getElementById('apiResult');
+      resultDiv.innerHTML = '<p>Loading...</p>';
+      
+      fetch(`/api/client-direct-json?clientId=${clientId}&t=${Date.now()}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const summary = {
+            client_name: data.client_name,
+            query_count: data.query_data ? data.query_data.length : 0,
+            has_summary: !!data.client_summary
+          };
+          
+          resultDiv.innerHTML = 
+            `<p class="success">✅ Success! Loaded API data for ${clientId}</p>
+             <pre>${JSON.stringify(summary, null, 2)}</pre>`;
+        })
+        .catch(error => {
+          resultDiv.innerHTML = 
+            `<p class="error">❌ Error: ${error.message}</p>
+             <pre>${error.stack || ''}</pre>`;
+        });
+    }
+    
+    // 3. Server test
+    function fetchServerTest() {
+      const resultDiv = document.getElementById('serverResult');
+      resultDiv.innerHTML = '<p>Loading...</p>';
+      
+      fetch('/api/data-access-test')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          resultDiv.innerHTML = 
+            `<p class="success">✅ Server diagnostics complete</p>
+             <pre>${JSON.stringify(data, null, 2)}</pre>`;
+        })
+        .catch(error => {
+          resultDiv.innerHTML = 
+            `<p class="error">❌ Error: ${error.message}</p>
+             <pre>${error.stack || ''}</pre>`;
+        });
+    }
+  </script>
+</body>
+</html>
