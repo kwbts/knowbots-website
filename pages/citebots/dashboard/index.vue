@@ -99,6 +99,20 @@
       
       <!-- Dashboard Content -->
       <div v-else class="space-y-6">
+        <!-- Simple Debug Navigation -->
+        <div class="mb-4 flex justify-between items-center">
+          <button @click="router.push('/citebots/dashboard/simple-debug')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">
+            Go to Simple Debug Page
+          </button>
+          <div class="text-sm text-gray-600">
+            Environment: {{ isDevelopment() ? 'Development' : 'Production' }}
+          </div>
+        </div>
+
+        <!-- Props Debugger -->
+        <div class="mb-6">
+          <PropDebugger :clientData="clientData" title="Main Dashboard Props" />
+        </div>
         <!-- Production Data Debugger -->
         <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
           <div class="flex justify-between items-center mb-2">
@@ -176,6 +190,7 @@ import CitationMentionRateGauge from '~/components/dashboard/metrics/CitationMen
 import PerformanceSummary from '@/components/dashboard/metrics/PerformanceSummary.vue';
 import PlatformCitationPerformance from '@/components/dashboard/metrics/PlatformCitationPerformance.vue';
 import MetricsDebugger from '@/components/dashboard/metrics/MetricsDebugger.vue';
+import PropDebugger from '@/components/dashboard/metrics/PropDebugger.vue';
 import { verifyClientToken, getClientDataPath } from '@/utils/secureAuth';
 
 const router = useRouter();
