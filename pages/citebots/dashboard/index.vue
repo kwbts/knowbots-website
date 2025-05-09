@@ -61,22 +61,49 @@
       </div>
       
       <!-- Error State -->
-      <div v-else-if="loadError" class="bg-white rounded-lg shadow-sm p-8 text-center">
-        <svg class="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <h2 class="text-xl font-semibold text-darkNavy mb-2">Error Loading Data</h2>
-        <p class="text-gray-600 mb-4">{{ loadError }}</p>
-        <button 
-          @click="loadClientData"
-          class="px-4 py-2 bg-burntOrangeDark hover:bg-jasperOrange text-white rounded-md"
-        >
-          Try Again
-        </button>
+      <div v-else-if="loadError" class="bg-white rounded-lg shadow-sm p-8">
+        <div class="text-center mb-4">
+          <svg class="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h2 class="text-xl font-semibold text-darkNavy mb-2">Error Loading Data</h2>
+          <p class="text-gray-600 mb-4">{{ loadError }}</p>
+        </div>
+        
+        <!-- Debug info -->
+        <div class="bg-gray-50 p-4 rounded-lg mb-4 text-left text-sm">
+          <div class="font-semibold mb-2">Debug Information:</div>
+          <div class="overflow-auto max-h-40 font-mono text-xs">
+            <div><strong>Client:</strong> {{ clientName }}</div>
+            <div><strong>Client ID:</strong> {{ getClientIdFromName(clientName) }}</div>
+            <div><strong>Authentication:</strong> {{ isAuthenticated ? 'Yes' : 'No' }}</div>
+            <div><strong>API Endpoint:</strong> /api/client-direct-json?clientId={{ getClientIdFromName(clientName) }}</div>
+          </div>
+        </div>
+        
+        <div class="flex space-x-4 justify-center">
+          <button 
+            @click="loadClientData"
+            class="px-4 py-2 bg-burntOrangeDark hover:bg-jasperOrange text-white rounded-md"
+          >
+            Try Again
+          </button>
+          <button 
+            @click="router.push('/citebots/dashboard/debug-data')"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+          >
+            Data Debugger
+          </button>
+        </div>
       </div>
       
       <!-- Dashboard Content -->
       <div v-else class="space-y-6">
+        <!-- Debug Component -->
+        <div v-if="dataLoaded" class="mb-6">
+          <MetricsDebugger :clientData="clientData" />
+        </div>
+        
         <!-- Performance Summary -->
         <div v-if="dataLoaded" class="mb-6">
           <PerformanceSummary :clientData="clientData" />
@@ -126,6 +153,7 @@ import BrandMentionRateGauge from '@/components/dashboard/metrics/BrandMentionRa
 import CitationMentionRateGauge from '~/components/dashboard/metrics/CitationMentionRateGauge.vue';
 import PerformanceSummary from '@/components/dashboard/metrics/PerformanceSummary.vue';
 import PlatformCitationPerformance from '@/components/dashboard/metrics/PlatformCitationPerformance.vue';
+import MetricsDebugger from '@/components/dashboard/metrics/MetricsDebugger.vue';
 import { verifyClientToken, getClientDataPath } from '@/utils/secureAuth';
 
 const router = useRouter();
