@@ -93,27 +93,6 @@
       
       <!-- Dashboard Content -->
       <div v-else-if="dataLoaded" class="space-y-6">
-        <!-- Debug Info -->
-        <div class="mb-6 bg-white rounded-lg shadow-sm p-4">
-          <div class="flex justify-between items-center mb-2">
-            <h3 class="text-lg font-semibold text-darkNavy">Dashboard Status</h3>
-            <button @click="showRawData = !showRawData" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm">
-              {{ showRawData ? 'Hide' : 'Show' }} Raw Data
-            </button>
-          </div>
-          
-          <div class="bg-gray-50 p-3 rounded">
-            <div><span class="font-medium">Client:</span> {{ client_name }}</div>
-            <div><span class="font-medium">File Path:</span> /{{ client_id }}-data.json</div>
-            <div><span class="font-medium">Queries:</span> {{ dashboard_data.query_data?.length || 0 }}</div>
-            <div><span class="font-medium">Has Summary:</span> {{ !!dashboard_data.client_summary }}</div>
-            <div><span class="font-medium">Environment:</span> {{ isProduction ? 'Production' : 'Development' }}</div>
-          </div>
-          
-          <div v-if="showRawData" class="mt-3 bg-gray-50 p-3 rounded max-h-60 overflow-auto">
-            <pre class="text-xs font-mono">{{ JSON.stringify(dashboard_data, null, 2) }}</pre>
-          </div>
-        </div>
         
         <!-- Performance Summary -->
         <div class="mb-6">
@@ -198,8 +177,6 @@ export default {
         }
       },
       
-      // UI state
-      showRawData: false,
       
       // Environment detection
       isProduction: process.env.NODE_ENV === 'production'

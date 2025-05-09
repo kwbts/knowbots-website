@@ -251,14 +251,11 @@ const checkDataAvailability = async () => {
     }
     
     dataFilesStatus.value = results;
-    console.table(dataFilesStatus.value);
-    
-    // Log summary of available data files
+    // Get summary of available data files
     const availableFiles = dataFilesStatus.value.filter(item => item.fileExists);
-    console.log(`${availableFiles.length} of ${dataFilesStatus.value.length} client data files are available`);
-    
+
     if (availableFiles.length === 0) {
-      console.warn('⚠️ No client data files found! The dashboard will not work correctly.');
+      // No files available - dashboard might not work correctly
     }
   } catch (error) {
     console.error('Error checking data files:', error);
