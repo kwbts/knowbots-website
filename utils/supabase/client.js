@@ -161,12 +161,12 @@ export async function fetchJsonFromSignedUrl(signedUrl) {
   if (process.env.NITRO_PRERENDER || !signedUrl) {
     return getFallbackData('fetchJsonFromSignedUrl');
   }
-  
+
   try {
     // Adding cache-busting query param to avoid CORS cached preflight issues
     const url = new URL(signedUrl);
     url.searchParams.append('_cb', Date.now());
-    
+
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: {
@@ -175,15 +175,17 @@ export async function fetchJsonFromSignedUrl(signedUrl) {
       },
       mode: 'cors'
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (err) {
-    console.warn('Error fetching from signed URL:', err.message);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Error fetching from signed URL:', err.message);
+    }
     return getFallbackData('fetchJsonFromSignedUrl');
   }
 }
@@ -212,33 +214,39 @@ export async function getFileFromStorage(bucket, filePath) {
   if (process.env.NITRO_PRERENDER) {
     return getFallbackData('getFileFromStorage');
   }
-  
+
   try {
     // Get Supabase client using our singleton pattern
     const client = getSupabaseClient();
-    
+
     // Check if Supabase client is available
     if (!client) {
-      console.warn('No Supabase client available, returning fallback data');
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('No Supabase client available, returning fallback data');
+      }
       return getFallbackData('getFileFromStorage-noClient');
     }
-    
+
     // Try to download the file
     const { data, error } = await client
       .storage
       .from(bucket)
       .download(filePath);
-      
+
     if (error) {
-      console.warn('Error downloading from storage:', error.message);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Error downloading from storage:', error.message);
+      }
       return getFallbackData('getFileFromStorage-downloadError');
     }
-    
+
     // Parse the JSON data
     const text = await data.text();
     return JSON.parse(text);
   } catch (error) {
-    console.warn('Error in getFileFromStorage:', error?.message);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Error in getFileFromStorage:', error?.message);
+    }
     return getFallbackData('getFileFromStorage-exception');
   }
 }

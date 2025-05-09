@@ -211,23 +211,23 @@ const clientData = ref({
 import { getSupabaseClient } from '~/utils/supabase/client';
 import { isPrerendering, isProduction, isDevelopment } from '~/utils/environment';
 
-// Load client data using the same approach as core-sample report
+// Load client data consistently across all environments
 const loadClientData = async () => {
   // Reset states
   isLoading.value = true;
   loadError.value = null;
   dataLoaded.value = false;
-  
+
   // If not authenticated, don't try to load data
   if (!isAuthenticated.value) {
     isLoading.value = false;
     return;
   }
-  
+
   try {
     // Skip data loading during prerendering to avoid 500 errors
     if (isPrerendering()) {
-      console.log("PRERENDERING: Using static data");
+      if (isDevelopment()) console.log("PRERENDERING: Using static data");
       // For prerendering, provide minimal static data
       clientData.value = {
         client_name: clientName.value,
@@ -245,68 +245,62 @@ const loadClientData = async () => {
       isLoading.value = false;
       return; // Exit early
     }
-    
+
     // Get client ID from the client name
     const clientId = getClientIdFromName(clientName.value);
-    
-    // CORE SAMPLE APPROACH: Use Supabase in production, direct file in development
-    if (isProduction()) {
-      console.log("PRODUCTION: Using Supabase storage");
-      
-      try {
-        // Get the Supabase client
-        const supabase = getSupabaseClient();
-        
-        if (!supabase) {
-          throw new Error('Supabase client not initialized');
-        }
-        
-        // Use same storage bucket as core sample
-        const bucket = 'may-core-sample';
-        const filePath = `clients/${clientId}-data.json`;
-        
-        console.log(`Loading from Supabase: ${bucket}/${filePath}`);
-        
-        // Download file directly from Supabase storage
-        const { data, error } = await supabase
-          .storage
-          .from(bucket)
-          .download(filePath);
-          
-        if (error) {
-          throw new Error(`Supabase error: ${error.message}`);
-        }
-        
-        if (!data) {
-          throw new Error('No data received from Supabase');
-        }
-        
-        // Parse the JSON
-        const text = await data.text();
-        const jsonData = JSON.parse(text);
-        
-        // Set client name if needed
-        if (!jsonData.client_name) {
-          jsonData.client_name = clientName.value;
-        }
-        
-        clientData.value = jsonData;
-        dataLoaded.value = true;
-        console.log("Client data loaded successfully from Supabase");
-      } catch (supabaseError) {
-        console.error('Supabase error:', supabaseError);
-        
-        // Fall back to API approach as last resort
-        console.log("Falling back to API endpoint");
-        await loadFromApi(clientId);
+
+    // CONSISTENT APPROACH: Always try Supabase first, then fallback to API
+    if (isDevelopment()) console.log("Attempting to load from Supabase storage");
+
+    try {
+      // Get the Supabase client
+      const supabase = getSupabaseClient();
+
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
       }
-    } else {
-      // In development, use the API endpoint for simplicity
-      console.log("DEVELOPMENT: Using API endpoint");
+
+      // Use same storage bucket as core sample
+      const bucket = 'may-core-sample';
+      const filePath = `clients/${clientId}-data.json`;
+
+      if (isDevelopment()) console.log(`Loading from Supabase: ${bucket}/${filePath}`);
+
+      // Download file directly from Supabase storage
+      const { data, error } = await supabase
+        .storage
+        .from(bucket)
+        .download(filePath);
+
+      if (error) {
+        throw new Error(`Supabase error: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('No data received from Supabase');
+      }
+
+      // Parse the JSON
+      const text = await data.text();
+      const jsonData = JSON.parse(text);
+
+      // Set client name if needed
+      if (!jsonData.client_name) {
+        jsonData.client_name = clientName.value;
+      }
+
+      clientData.value = jsonData;
+      dataLoaded.value = true;
+      if (isDevelopment()) console.log("Client data loaded successfully from Supabase");
+    } catch (supabaseError) {
+      if (isDevelopment()) console.error('Supabase error:', supabaseError);
+
+      // Fall back to API approach as last resort
+      if (isDevelopment()) console.log("Falling back to API endpoint");
       await loadFromApi(clientId);
     }
   } catch (error) {
-    console.error('Error loading client data:', error);
+    if (isDevelopment()) console.error('Error loading client data:', error);
     loadError.value = `Unable to load data for ${clientName.value}. Please try again later.`;
   } finally {
     isLoading.value = false;
@@ -317,36 +311,39 @@ const loadClientData = async () => {
 const loadFromApi = async (clientId) => {
   // Use the direct JSON API endpoint
   const apiUrl = `/api/client-direct-json?clientId=${encodeURIComponent(clientId)}`;
-  
-  console.log(`Loading from API: ${apiUrl}`);
-  
+
+  if (isDevelopment()) console.log(`Loading from API: ${apiUrl}`);
+
   // Fetch from the API endpoint
   const response = await fetch(apiUrl);
-  
+
   // Check if the request was successful
   if (!response.ok) {
     throw new Error(`Failed to load data: ${response.status}`);
   }
-  
+
   // Parse the response
   const data = await response.json();
-  
+
   // Make sure client name is set correctly
   if (!data.client_name) {
     data.client_name = clientName.value;
   }
-  
-  // Debug the data structure
-  console.log("Data structure check:", {
-    hasClientName: !!data.client_name,
-    hasQueryData: Array.isArray(data.query_data),
-    queryDataLength: data.query_data?.length || 0,
-    hasClientSummary: !!data.client_summary
-  });
-  
+
+  // Debug the data structure if in development
+  if (isDevelopment()) {
+    console.log("Data structure check:", {
+      hasClientName: !!data.client_name,
+      hasQueryData: Array.isArray(data.query_data),
+      queryDataLength: data.query_data?.length || 0,
+      hasClientSummary: !!data.client_summary
+    });
+  }
+
   clientData.value = data;
   dataLoaded.value = true;
-  console.log("Client data loaded successfully from API");
+
+  if (isDevelopment()) console.log("Client data loaded successfully from API");
 };
 
 // Helper function to convert client name to ID

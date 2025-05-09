@@ -32,12 +32,17 @@ export default defineEventHandler(async (event) => {
     const fileName = `${clientId.toLowerCase()}-data.json`;
     const filePath = path.resolve('public', fileName);
     
-    console.log(`Attempting to load client data from: ${filePath}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Attempting to load client data from: ${filePath}`);
+    }
     
     // Check if file exists
     if (!fs.existsSync(filePath)) {
-      console.warn(`Client data file not found: ${filePath}`);
-      
+      // Log only in development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Client data file not found: ${filePath}`);
+      }
+
       // Return a fallback response instead of an error
       return {
         client_name: getClientNameFromId(clientId),
@@ -58,17 +63,23 @@ export default defineEventHandler(async (event) => {
     try {
       const fileContent = fs.readFileSync(filePath, 'utf8');
       const jsonData = JSON.parse(fileContent);
-      console.log(`Successfully loaded and parsed ${fileName}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Successfully loaded and parsed ${fileName}`);
+      }
       return jsonData;
     } catch (error) {
-      console.error(`Error loading or parsing ${fileName}:`, error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`Error loading or parsing ${fileName}:`, error);
+      }
       throw createError({
         statusCode: 500,
         statusMessage: 'Failed to parse client data file'
       });
     }
   } catch (err) {
-    console.error('API error:', err);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('API error:', err);
+    }
     
     // If it's already an H3 error, throw it directly
     if (err.statusCode) {
