@@ -106,8 +106,10 @@ export default defineNuxtConfig({
     routeRules: {
       // Make dynamic routes static at build time, using static fallbacks
       '/blog/**': { static: true },
-      '/core-sample/**': { static: true },
-      
+
+      // Redirect core-sample to homepage
+      '/core-sample/**': { redirect: { to: '/', statusCode: 301 } },
+
       // Special rule for citebots API endpoints - ensure they are handled dynamically
       '/api/client-direct-json': { swr: false },
       '/api/client-supabase-data': { swr: false },
